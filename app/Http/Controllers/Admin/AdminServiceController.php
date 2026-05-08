@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Service;
+use App\Models\Layanan;
 use Illuminate\Http\Request;
 
 /**
@@ -19,8 +19,8 @@ class AdminServiceController extends Controller
      */
     public function index()
     {
-        // Ambil semua layanan, urutkan dari yang terbaru (latest)
-        $services = Service::latest()->get();
+        // Ambil semua layanan, urutkan berdasarkan id_layanan (primary key)
+        $services = Layanan::orderBy('id_layanan', 'desc')->get();
         return view('admin.services.index', compact('services'));
     }
 
@@ -41,9 +41,9 @@ class AdminServiceController extends Controller
     {
         // Validasi input dari form
         $validated = $request->validate([
-            'name' => 'required|string|max:100',    // Nama wajib, max 100 karakter
-            'price' => 'required|integer|min:0',    // Harga wajib, bilangan bulat, min 0
-            'description' => 'nullable|string',  // Deskripsi opsional
+            'nama_layanan' => 'required|string|max:100',    // Nama wajib, max 100 karakter
+            'harga' => 'required|integer|min:0',    // Harga wajib, bilangan bulat, min 0
+            'deskripsi' => 'nullable|string',  // Deskripsi opsional
             'is_active' => 'boolean',              // Checkbox boolean
         ]);
 
@@ -52,7 +52,7 @@ class AdminServiceController extends Controller
         $validated['is_active'] = $request->has('is_active');
 
         // Create: simpan ke database
-        Service::create($validated);
+        Layanan::create($validated);
 
         // Redirect ke index dengan pesan sukses
         return redirect()->route('admin.services.index')->with('success', 'Layanan berhasil ditambahkan.');
@@ -62,30 +62,30 @@ class AdminServiceController extends Controller
      * Show the form for editing the specified resource.
      * Method: GET /admin18908/services/{service}/edit
      */
-    public function edit(Service $service)
+    public function edit(Layanan $layanan)
     {
-        // Route Model Binding: Laravel otomatis mencari Service berdasarkan ID
-        return view('admin.services.edit', compact('service'));
+        // Route Model Binding: Laravel otomatis mencari Layanan berdasarkan ID
+        return view('admin.services.edit', compact('layanan'));
     }
 
     /**
      * Update the specified resource in storage.
      * Method: PUT /admin18908/services/{service}
      */
-    public function update(Request $request, Service $service)
+    public function update(Request $request, Layanan $layanan)
     {
         // Validasi sama seperti store
         $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'price' => 'required|integer|min:0',
-            'description' => 'nullable|string',
+            'nama_layanan' => 'required|string|max:100',
+            'harga' => 'required|integer|min:0',
+            'deskripsi' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
 
         $validated['is_active'] = $request->has('is_active');
 
         // Update: perbarui data di database
-        $service->update($validated);
+        $layanan->update($validated);
 
         return redirect()->route('admin.services.index')->with('success', 'Layanan berhasil diperbarui.');
     }
@@ -94,10 +94,10 @@ class AdminServiceController extends Controller
      * Remove the specified resource from storage.
      * Method: DELETE /admin18908/services/{service}
      */
-    public function destroy(Service $service)
+    public function destroy(Layanan $layanan)
     {
         // Delete: hapus dari database
-        $service->delete();
+        $layanan->delete();
 
         return redirect()->route('admin.services.index')->with('success', 'Layanan berhasil dihapus.');
     }

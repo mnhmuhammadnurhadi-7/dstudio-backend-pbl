@@ -22,9 +22,9 @@
         <tbody>
             @forelse($services as $service)
                 <tr class="border-b hover:bg-gray-50">
-                    <td class="px-4 py-3 font-semibold">{{ $service->name }}</td>
-                    <td class="px-4 py-3">Rp{{ number_format($service->price, 0, ',', '.') }}</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">{{ Str::limit($service->description, 50) }}</td>
+                    <td class="px-4 py-3 font-semibold">{{ $service->nama_layanan }}</td>
+                    <td class="px-4 py-3">Rp{{ number_format($service->harga, 0, ',', '.') }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">{{ Str::limit($service->deskripsi, 50) }}</td>
                     <td class="px-4 py-3">
                         <span class="px-2 py-1 rounded-full text-xs {{ $service->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                             {{ $service->is_active ? 'AKTIF' : 'NONAKTIF' }}

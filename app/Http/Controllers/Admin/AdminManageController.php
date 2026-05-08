@@ -47,8 +47,11 @@ class AdminManageController extends Controller
             'role' => 'required|in:admin,superadmin',           // Role harus valid
         ]);
 
+        // Map 'name' ke 'nama_admin' agar sesuai field DB
+        $validated['nama_admin'] = $validated['name'];
+        unset($validated['name']);
+
         // Hash password sebelum disimpan ke database
-        // Hash::make() mengenkripsi password menggunakan bcrypt
         $validated['password'] = Hash::make($validated['password']);
 
         // Simpan ke database

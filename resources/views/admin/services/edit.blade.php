@@ -4,41 +4,41 @@
 <h1 class="text-2xl font-bold mb-6">Edit Layanan</h1>
 
 <div class="bg-white rounded-lg shadow p-6 max-w-2xl">
-    <form action="{{ route('admin.services.update', $service) }}" method="POST">
+    <form action="{{ route('admin.services.update', $layanan) }}" method="POST">
         @csrf
         @method('PUT')
 
         <div class="mb-4">
             <label class="block text-gray-700 font-semibold mb-2">Nama Layanan</label>
-            <input type="text" name="name" 
-                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold @error('name') border-red-500 @enderror"
-                value="{{ old('name', $service->name) }}"
+            <input type="text" name="nama_layanan" 
+                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold @error('nama_layanan') border-red-500 @enderror"
+                value="{{ old('nama_layanan', $layanan->nama_layanan) }}"
                 required>
-            @error('name')
+            @error('nama_layanan')
                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
             @enderror
         </div>
 
         <div class="mb-4">
             <label class="block text-gray-700 font-semibold mb-2">Harga (Rp)</label>
-            <input type="number" name="price" 
-                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold @error('price') border-red-500 @enderror"
-                value="{{ old('price', $service->price) }}"
+            <input type="number" name="harga" 
+                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold @error('harga') border-red-500 @enderror"
+                value="{{ old('harga', $layanan->harga) }}"
                 required>
-            @error('price')
+            @error('harga')
                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
             @enderror
         </div>
 
         <div class="mb-4">
             <label class="block text-gray-700 font-semibold mb-2">Deskripsi</label>
-            <textarea name="description" rows="3"
-                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold">{{ old('description', $service->description) }}</textarea>
+            <textarea name="deskripsi" rows="3"
+                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold">{{ old('deskripsi', $layanan->deskripsi) }}</textarea>
         </div>
 
         <div class="mb-6">
             <label class="flex items-center">
-                <input type="checkbox" name="is_active" value="1" {{ $service->is_active ? 'checked' : '' }}
+                <input type="checkbox" name="is_active" value="1" {{ $layanan->is_active ? 'checked' : '' }}
                     class="w-4 h-4 text-dstudio-gold rounded focus:ring-dstudio-gold">
                 <span class="ml-2 text-gray-700">Aktif</span>
             </label>

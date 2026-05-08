@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Order;
+use App\Models\Pesanan;
+use App\Models\Layanan;
 use Illuminate\Http\Request;
 
 /**
@@ -23,37 +24,35 @@ class AdminDashboardController extends Controller
         $status = $request->get('status');  // Filter berdasarkan status
         $search = $request->get('search');  // Pencarian berdasarkan nama/ticket
 
-        // Query dasar: ambil order yang belum selesai (status != done)
-        // with('service') = eager loading untuk mengurangi query N+1
-        $query = Order::with('service')->where('status', '!=', 'done');
+        // Query dasar: ambil pesanan yang belum selesai (status_pesanan != selesai)
+        // with('layanan') = eager loading untuk mengurangi query N+1
+        $query = Pesanan::with('layanan')->whereNotIn('status_pesanan', ['selesai', 'dibatalkan']);
 
         // Filter berdasarkan status jika parameter status ada
-        if ($status && in_array($status, ['pending', 'verified', 'processing'])) {
-            $query->where('status', $status);
+        if ($status && in_array($status, ['terkirim', 'diproses'])) {
+            $query->where('status_pesanan', $status);
         }
 
-        // Search berdasarkan nama customer atau ticket_id
+        // Search berdasarkan nama customer atau kode_tiket
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('ticket_id', 'like', "%{$search}%");
+                $q->where('nama_pelanggan', 'like', "%{$search}%")
+                  ->orWhere('kode_tiket', 'like', "%{$search}%");
             });
         }
 
-        // Ambil data order, urutkan dari yang terbaru
-        $orders = $query->latest()->get();
+        // Ambil data pesanan, urutkan dari yang terbaru
+        $pesanan = $query->latest()->get();
 
-        // Hitung jumlah order untuk setiap status (untuk badge di UI)
+        // Hitung jumlah pesanan untuk setiap status (untuk badge di UI)
         $counts = [
-            'all' => Order::where('status', '!=', 'done')->count(),
-            'pending' => Order::where('status', 'pending')->count(),
-            'verified' => Order::where('status', 'verified')->count(),
-            'processing' => Order::where('status', 'processing')->count(),
-            'done' => Order::where('status', 'done')->count(),
+            'all' => Pesanan::whereNotIn('status_pesanan', ['selesai', 'dibatalkan'])->count(),
+            'terkirim' => Pesanan::where('status_pesanan', 'terkirim')->count(),
+            'diproses' => Pesanan::where('status_pesanan', 'diproses')->count(),
         ];
 
         // Kirim data ke view
-        return view('admin.dashboard', compact('orders', 'counts', 'status'));
+        return view('admin.dashboard', compact('pesanan', 'counts', 'status', 'search'));
     }
 
     /**
@@ -65,18 +64,18 @@ class AdminDashboardController extends Controller
         $search = $request->get('search');
 
         // Query: ambil hanya order yang sudah selesai
-        $query = Order::with('service')->where('status', 'done');
+        $query = Pesanan::with('layanan')->where('status_pesanan', 'selesai');
 
         // Search jika ada parameter search
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('ticket_id', 'like', "%{$search}%");
+                $q->where('nama_pelanggan', 'like', "%{$search}%")
+                  ->orWhere('kode_tiket', 'like', "%{$search}%");
             });
         }
 
-        $orders = $query->latest()->get();
+        $pesanan = $query->latest()->get();
 
-        return view('admin.completed', compact('orders'));
+        return view('admin.completed', compact('pesanan', 'search'));
     }
 }

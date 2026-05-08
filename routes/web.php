@@ -91,7 +91,7 @@ Route::middleware('admin.auth')           // Middleware: cek sudah login
         Route::middleware('superadmin')->group(function () {
             
             // Resource controller untuk layanan (index, create, store, edit, update, destroy)
-            Route::resource('services', AdminServiceController::class);
+            Route::resource('services', AdminServiceController::class)->parameters(['services' => 'layanan']);
             
             // Resource controller untuk admin (hanya index, create, store, destroy)
             Route::resource('admins', AdminManageController::class)->except(['show', 'edit', 'update']);

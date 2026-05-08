@@ -2,29 +2,29 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 /**
  * DatabaseSeeder
- * Entry point untuk semua seeder
- * Dijalankan dengan: php artisan db:seed atau php artisan migrate:fresh --seed
+ * Main seeder yang menjalankan semua seeder lainnya
+ * Digunakan untuk mengisi database dengan data awal
  */
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * Jalankan semua seeder
-     * Method run() dieksekusi saat db:seed dijalankan
+     * Memanggil seeder untuk setiap tabel yang ada
      */
     public function run(): void
     {
-        // Panggil seeder lain secara berurutan
+        // Jalankan seeder untuk setiap tabel
         $this->call([
-            ServiceSeeder::class,      // Buat layanan default
-            AdminSeeder::class,        // Buat akun admin default
-            SiteContentSeeder::class,  // Buat konten website default
+            AdminSeeder::class,         // Data admin (haris pertama karena relasi)
+            LayananSeeder::class,       // Data layanan
+            SiteSettingsSeeder::class,  // Data pengaturan website
         ]);
+
+        $this->command->info('✓ DatabaseSeeder: Semua seeder berhasil dijalankan');
+        $this->command->info('  Urutan: Admin → Layanan → SiteSettings');
     }
 }

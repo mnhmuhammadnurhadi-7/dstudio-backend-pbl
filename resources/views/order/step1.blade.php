@@ -58,8 +58,8 @@
                     <select name="service_id" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold @error('service_id') border-red-500 @enderror">
                         <option value="">Pilih layanan...</option>
                         @foreach($services as $service)
-                            <option value="{{ $service->id }}" {{ session('order.service_id') == $service->id ? 'selected' : '' }}>
-                                {{ $service->name }} - Rp{{ number_format($service->price, 0, ',', '.') }}
+                            <option value="{{ $service->id_layanan }}" {{ session('order.service_id') == $service->id_layanan ? 'selected' : '' }}>
+                                {{ $service->nama_layanan }} - Rp{{ number_format($service->harga, 0, ',', '.') }}
                             </option>
                         @endforeach
                     </select>

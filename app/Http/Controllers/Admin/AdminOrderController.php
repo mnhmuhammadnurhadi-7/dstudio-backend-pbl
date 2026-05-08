@@ -20,13 +20,13 @@ class AdminOrderController extends Controller
      */
     public function updateStatus(Request $request, Order $order)
     {
-        // Validasi status yang diperbolehkan
+        // Validasi status yang diperbolehkan sesuai enum di database
         $validated = $request->validate([
-            'status' => 'required|in:pending,verified,processing,done',
+            'status' => 'required|in:terkirim,diproses,selesai,revisi,dibatalkan',
         ]);
 
-        // Update status order di database
-        $order->update(['status' => $validated['status']]);
+        // Update status pesanan di database
+        $order->update(['status_pesanan' => $validated['status']]);
 
         return redirect()->back()->with('success', 'Status pesanan diperbarui.');
     }
@@ -44,7 +44,7 @@ class AdminOrderController extends Controller
         ]);
 
         // Simpan link hasil ke database
-        $order->update(['result_link' => $validated['result_link']]);
+        $order->update(['link_foto_hasil' => $validated['result_link']]);
 
         return redirect()->back()->with('success', 'Link hasil berhasil diupload.');
     }
@@ -56,9 +56,9 @@ class AdminOrderController extends Controller
      */
     public function confirmPayment(Request $request, Order $order)
     {
-        // Update payment_status menjadi 'paid'
-        $order->update(['payment_status' => 'paid']);
+        // Update status menjadi 'diproses' sebagai konfirmasi pembayaran
+        $order->update(['status_pesanan' => 'diproses']);
 
-        return redirect()->back()->with('success', 'Pembayaran dikonfirmasi.');
+        return redirect()->back()->with('success', 'Pembayaran dikonfirmasi dan status diubah ke Diproses.');
     }
 }

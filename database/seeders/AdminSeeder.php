@@ -8,32 +8,36 @@ use Illuminate\Support\Facades\Hash;
 
 /**
  * AdminSeeder
- * Membuat akun admin default untuk testing dan pertama kali setup
- * Super Admin: bisa akses semua fitur termasuk manajemen admin
- * Admin biasa: hanya bisa akses dashboard dan kelola order
+ * Membuat data admin awal untuk sistem
+ * - 1 Super Admin
+ * - 1 Admin biasa
  */
 class AdminSeeder extends Seeder
 {
     /**
      * Jalankan seeder
-     * Buat 2 akun default: Super Admin dan Admin biasa
+     * Membuat akun admin default untuk login pertama kali
      */
     public function run(): void
     {
-        // Akun Super Admin - punya akses penuh termasuk CMS dan manajemen admin
+        // Buat akun Super Admin
         Admin::create([
-            'name' => 'Super Admin',
-            'username' => 'superadmin',           // Username untuk login
-            'password' => Hash::make('superadmin123'), // Password di-hash dengan bcrypt
-            'role' => 'superadmin',                // Role dengan hak akses tertinggi
+            'username' => 'superadmin',
+            'password' => Hash::make('superadmin123'), // Password akan di-hash otomatis
+            'nama_admin' => 'Super Admin',
+            'role' => 'superadmin',
         ]);
 
-        // Akun Admin biasa - hanya kelola order dan verifikasi pembayaran
+        // Buat akun Admin biasa
         Admin::create([
-            'name' => 'Admin DStudio',
-            'username' => 'admin',                 // Username untuk login
-            'password' => Hash::make('admin123'),  // Password di-hash dengan bcrypt
-            'role' => 'admin',                     // Role biasa (terbatas)
+            'username' => 'admin',
+            'password' => Hash::make('admin123'), // Password akan di-hash otomatis
+            'nama_admin' => 'Admin User',
+            'role' => 'admin',
         ]);
+
+        $this->command->info('✓ AdminSeeder: 2 akun admin berhasil dibuat');
+        $this->command->info('  - Super Admin: superadmin/superadmin123');
+        $this->command->info('  - Admin: admin/admin123');
     }
 }

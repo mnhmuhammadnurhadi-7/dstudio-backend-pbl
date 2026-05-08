@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Service;
+use App\Models\Layanan;
 use Illuminate\Http\Request;
 
 /**
@@ -13,14 +13,14 @@ class ServiceController extends Controller
 {
     /**
      * Menampilkan semua layanan yang aktif
-     * Hanya layanan dengan is_active = true yang ditampilkan
+     * Hanya layanan dengan is_active = 1 yang ditampilkan
      */
     public function index()
     {
-        // Query: ambil semua service yang aktif
-        // where('is_active', true) = filter hanya yang aktif
+        // Query: ambil semua layanan yang aktif
+        // where('is_active', 1) = filter hanya yang aktif
         // get() = ambil semua hasil sebagai collection
-        $services = Service::where('is_active', true)->get();
+        $services = Layanan::where('is_active', 1)->get();
         
         return view('services.index', compact('services'));
     }

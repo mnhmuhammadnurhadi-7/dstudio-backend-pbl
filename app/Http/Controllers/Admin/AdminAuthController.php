@@ -42,9 +42,9 @@ class AdminAuthController extends Controller
         if ($admin && Hash::check($validated['password'], $admin->password)) {
             // Simpan data admin ke session setelah login berhasil
             session([
-                'admin_id' => $admin->id,        // ID untuk identifikasi
-                'admin_role' => $admin->role,    // Role untuk authorization
-                'admin_name' => $admin->name,    // Nama untuk ditampilkan di UI
+                'admin_id' => $admin->id_admin,        // ID untuk identifikasi
+                'admin_role' => $admin->role,          // Role untuk authorization
+                'admin_name' => $admin->nama_admin,    // Nama untuk ditampilkan di UI
             ]);
 
             // Redirect ke dashboard admin

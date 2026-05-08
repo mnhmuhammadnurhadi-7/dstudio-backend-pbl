@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
-use App\Models\Service;
-use App\Models\SiteContent;
+use App\Models\Pesanan;
+use App\Models\Layanan;
+use App\Models\SiteSettings;
 use Illuminate\Http\Request;
 
 /**
@@ -21,7 +21,7 @@ class OrderController extends Controller
     public function step1()
     {
         // Ambil semua layanan yang aktif untuk ditampilkan di dropdown
-        $services = Service::where('is_active', true)->get();
+        $services = Layanan::where('is_active', 1)->get();
         return view('order.step1', compact('services'));
     }
 
@@ -35,7 +35,7 @@ class OrderController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100',      // Nama wajib diisi, max 100 karakter
             'phone' => 'required|string|max:20',      // Nomor HP wajib diisi
-            'service_id' => 'required|exists:services,id', // Service ID harus valid dan ada di DB
+            'service_id' => 'required|exists:layanan,id_layanan', // Service ID harus valid dan ada di DB
             'notes' => 'nullable|string|max:500',       // Catatan opsional
         ]);
 
@@ -95,10 +95,10 @@ class OrderController extends Controller
         }
 
         // Ambil detail layanan yang dipilih untuk menampilkan harga
-        $service = Service::find(session('order.service_id'));
+        $service = Layanan::find(session('order.service_id'));
         
-        // Ambil URL gambar QRIS dari tabel site_contents (CMS)
-        $qrisImage = SiteContent::where('key', 'qris_image')->first()?->value;
+        // Ambil URL gambar QRIS dari tabel site_settings (CMS)
+        $qrisImage = SiteSettings::getValue('qris_image_path', 'images/qris.png');
 
         return view('order.step3', compact('service', 'qrisImage'));
     }
@@ -115,28 +115,22 @@ class OrderController extends Controller
         }
 
         // Ambil detail layanan untuk mendapatkan harga
-        $service = Service::find(session('order.service_id'));
+        $service = Layanan::find(session('order.service_id'));
 
-        // Generate Ticket ID unik (format: DST-001, DST-002, dst)
-        // Hitung jumlah order existing + 1 untuk nomor urut
-        $count = Order::count() + 1;
-        $ticketId = 'DST-' . str_pad($count, 3, '0', STR_PAD_LEFT);
-
-        // Buat record order baru di database
-        $order = Order::create([
-            'ticket_id' => $ticketId,           // ID unik untuk tracking
-            'name' => session('order.name'),    // Ambil dari session
-            'phone' => session('order.phone'),
-            'service_id' => session('order.service_id'),
-            'notes' => session('order.notes'),
-            'photo_link' => session('order.photo_link'),
-            'status' => 'pending',               // Status awal: pending
-            'payment_status' => 'unpaid',        // Pembayaran: belum lunas
-            'total_price' => $service->price,    // Harga dari layanan
+        // Buat record pesanan baru di database
+        // Kode tiket akan auto-generate di model Pesanan
+        $pesanan = Pesanan::create([
+            'id_layanan' => session('order.service_id'),
+            'nama_pelanggan' => session('order.name'),
+            'no_wa' => session('order.phone'),
+            'link_foto_mentah' => session('order.photo_link'),
+            'catatan' => session('order.notes'),
+            'total_bayar' => $service->harga,
+            'status_pesanan' => 'terkirim',      // Status awal: terkirim
         ]);
 
-        // Simpan ticket_id ke session untuk halaman done
-        session(['order.ticket_id' => $order->ticket_id]);
+        // Simpan kode_tiket ke session untuk halaman done
+        session(['order.ticket_id' => $pesanan->kode_tiket]);
         
         // Hapus data temporer dari session (kecuali ticket_id)
         session()->forget(['order.name', 'order.phone', 'order.service_id', 'order.notes', 'order.photo_link']);
@@ -158,14 +152,14 @@ class OrderController extends Controller
             return redirect()->route('order.step1');
         }
 
-        // Ambil detail order dari database beserta relasi service
-        // with('service') = eager loading untuk optimasi query
-        $order = Order::with('service')->where('ticket_id', $ticketId)->firstOrFail();
+        // Ambil detail pesanan dari database beserta relasi layanan
+        // with('layanan') = eager loading untuk optimasi query
+        $pesanan = Pesanan::with('layanan')->where('kode_tiket', $ticketId)->firstOrFail();
         
         // Ambil nomor WhatsApp admin untuk tombol konfirmasi
-        $whatsappNumber = SiteContent::where('key', 'whatsapp_number')->first()?->value;
+        $whatsappNumber = SiteSettings::getValue('nomor_wa_bisnis', '6281234567890');
 
-        return view('order.done', compact('order', 'whatsappNumber'));
+        return view('order.done', compact('pesanan', 'whatsappNumber'));
     }
 
     /**
@@ -188,19 +182,19 @@ class OrderController extends Controller
             'ticket_id' => 'required|string',
         ]);
 
-        // Cari order berdasarkan ticket_id
-        // with('service') = eager loading untuk mengambil data layanan terkait
-        $order = Order::with('service')->where('ticket_id', $validated['ticket_id'])->first();
+        // Cari pesanan berdasarkan ticket_id
+        // with('layanan') = eager loading untuk mengambil data layanan terkait
+        $pesanan = Pesanan::with('layanan')->where('kode_tiket', $validated['ticket_id'])->first();
 
-        // Jika order tidak ditemukan, kembali dengan pesan error
-        if (!$order) {
+        // Jika pesanan tidak ditemukan, kembali dengan pesan error
+        if (!$pesanan) {
             return redirect()->back()->with('error', 'Tiket tidak ditemukan.');
         }
 
         // Ambil nomor WhatsApp untuk tombol chat admin
-        $whatsappNumber = SiteContent::where('key', 'whatsapp_number')->first()?->value;
+        $whatsappNumber = SiteSettings::getValue('nomor_wa_bisnis', '6281234567890');
 
-        return view('status.result', compact('order', 'whatsappNumber'));
+        return view('status.result', compact('pesanan', 'whatsappNumber'));
     }
 
     /**
@@ -216,15 +210,18 @@ class OrderController extends Controller
         ]);
 
         // Cari order berdasarkan ticket_id
-        $order = Order::where('ticket_id', $validated['ticket_id'])->firstOrFail();
+        $pesanan = Pesanan::where('kode_tiket', $validated['ticket_id'])->firstOrFail();
 
-        // Pastikan order sudah selesai sebelum bisa dirating
-        if ($order->status !== 'done') {
+        // Pastikan pesanan sudah selesai sebelum bisa dirating
+        if ($pesanan->status_pesanan !== 'selesai') {
             return redirect()->back()->with('error', 'Pesanan belum selesai.');
         }
 
-        // Update kolom rating di database
-        $order->update(['rating' => $validated['rating']]);
+        // Buat record rating di tabel rating (bukan update di pesanan)
+        \App\Models\Rating::create([
+            'kode_tiket' => $pesanan->kode_tiket,
+            'nilai_rating' => $validated['rating'],
+        ]);
 
         return redirect()->back()->with('success', 'Terima kasih atas rating Anda!');
     }

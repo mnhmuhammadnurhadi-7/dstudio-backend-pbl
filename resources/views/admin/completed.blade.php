@@ -35,27 +35,27 @@
             </tr>
         </thead>
         <tbody>
-            @forelse($orders as $order)
+            @forelse($pesanan as $item)
                 <tr class="border-b hover:bg-gray-50">
-                    <td class="px-4 py-3 font-mono font-bold">{{ $order->ticket_id }}</td>
-                    <td class="px-4 py-3">{{ $order->name }}</td>
-                    <td class="px-4 py-3">{{ $order->service->name }}</td>
-                    <td class="px-4 py-3">Rp{{ number_format($order->total_price, 0, ',', '.') }}</td>
+                    <td class="px-4 py-3 font-mono font-bold">{{ $item->kode_tiket }}</td>
+                    <td class="px-4 py-3">{{ $item->nama_pelanggan }}</td>
+                    <td class="px-4 py-3">{{ $item->layanan->nama_layanan }}</td>
+                    <td class="px-4 py-3">Rp{{ number_format($item->total_bayar, 0, ',', '.') }}</td>
                     <td class="px-4 py-3">
-                        @if($order->rating)
+                        @if($item->rating)
                             <div class="flex gap-1">
                                 @for($i = 1; $i <= 5; $i++)
-                                    <i class="fas fa-star {{ $i <= $order->rating ? 'text-yellow-400' : 'text-gray-300' }}"></i>
+                                    <i class="fas fa-star {{ $i <= $item->rating->nilai_rating ? 'text-yellow-400' : 'text-gray-300' }}"></i>
                                 @endfor
                             </div>
                         @else
                             <span class="text-gray-400">-</span>
                         @endif
                     </td>
-                    <td class="px-4 py-3 text-sm">{{ $order->updated_at->format('d M Y H:i') }}</td>
+                    <td class="px-4 py-3 text-sm">{{ $item->selesai_at ? $item->selesai_at->format('d M Y H:i') : $item->created_at->format('d M Y H:i') }}</td>
                     <td class="px-4 py-3">
-                        @if($order->result_link)
-                            <a href="{{ $order->result_link }}" target="_blank" class="text-dstudio-gold hover:underline">
+                        @if($item->link_foto_hasil)
+                            <a href="{{ $item->link_foto_hasil }}" target="_blank" class="text-dstudio-gold hover:underline">
                                 <i class="fas fa-external-link-alt mr-1"></i>Lihat
                             </a>
                         @else

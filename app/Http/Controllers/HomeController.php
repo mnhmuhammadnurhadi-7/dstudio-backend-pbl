@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SiteContent;
+use App\Models\SiteSettings;
 use Illuminate\Http\Request;
 
 /**
  * HomeController
  * Controller untuk halaman beranda (landing page)
- * Mengambil konten dinamis dari CMS (site_contents)
+ * Mengambil konten dinamis dari CMS (site_settings)
  */
 class HomeController extends Controller
 {
@@ -19,17 +19,12 @@ class HomeController extends Controller
      */
     public function index()
     {
-        // Ambil konten dinamis dari tabel site_contents berdasarkan key
-        // Operator ?? (null coalescing) memberikan default value jika data null
+        // Ambil konten dinamis dari tabel site_settings berdasarkan key
+        // Gunakan static method getValue() dari SiteSettings model
         
-        $heroTitle = SiteContent::where('key', 'hero_title')->first()?->value 
-            ?? 'Edit Foto Profesional';
-            
-        $heroSubtitle = SiteContent::where('key', 'hero_subtitle')->first()?->value 
-            ?? 'Upload foto, kami yang urus sisanya.';
-            
-        $aboutText = SiteContent::where('key', 'about_text')->first()?->value 
-            ?? '';
+        $heroTitle = SiteSettings::getValue('hero_title', 'Jasa Editing Foto Profesional');
+        $heroSubtitle = SiteSettings::getValue('hero_subtitle', 'KTM, CV, Visa dan kebutuhan foto dokumen lainnya dengan kualitas terbaik');
+        $aboutText = SiteSettings::getValue('about_text', '');
 
         // Kirim variabel ke view home.index
         return view('home.index', compact('heroTitle', 'heroSubtitle', 'aboutText'));

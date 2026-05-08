@@ -17,38 +17,38 @@
     <div class="max-w-2xl mx-auto px-6">
         <div class="bg-white rounded-lg shadow-md p-8 text-center">
             <p class="text-gray-600 mb-2">Kode Tiket Anda:</p>
-            <h2 class="text-5xl font-bold text-dstudio-gold mb-6">#{{ $order->ticket_id }}</h2>
+            <h2 class="text-5xl font-bold text-dstudio-gold mb-6">#{{ $pesanan->kode_tiket }}</h2>
             
             <div class="border-t border-gray-200 pt-6 mt-6 text-left">
                 <div class="grid md:grid-cols-2 gap-4">
                     <div>
                         <p class="text-gray-500 text-sm">Nama</p>
-                        <p class="font-semibold">{{ $order->name }}</p>
+                        <p class="font-semibold">{{ $pesanan->nama_pelanggan }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500 text-sm">No. HP</p>
-                        <p class="font-semibold">{{ $order->phone }}</p>
+                        <p class="font-semibold">{{ $pesanan->no_wa }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500 text-sm">Layanan</p>
-                        <p class="font-semibold">{{ $order->service->name }}</p>
+                        <p class="font-semibold">{{ $pesanan->layanan->nama_layanan }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500 text-sm">Total Bayar</p>
                         <p class="font-semibold text-dstudio-gold">
-                            Rp{{ number_format($order->total_price, 0, ',', '.') }}
+                            Rp{{ number_format($pesanan->total_bayar, 0, ',', '.') }}
                         </p>
                     </div>
                 </div>
-                @if($order->notes)
+                @if($pesanan->catatan)
                     <div class="mt-4">
                         <p class="text-gray-500 text-sm">Catatan</p>
-                        <p class="font-semibold">{{ $order->notes }}</p>
+                        <p class="font-semibold">{{ $pesanan->catatan }}</p>
                     </div>
                 @endif
                 <div class="mt-4">
                     <p class="text-gray-500 text-sm">Waktu Pemesanan</p>
-                    <p class="font-semibold">{{ $order->created_at->format('d M Y H:i') }}</p>
+                    <p class="font-semibold">{{ $pesanan->created_at->format('d M Y H:i') }}</p>
                 </div>
             </div>
 
@@ -56,10 +56,10 @@
                 @if($whatsappNumber)
                     @php
                         $message = "Halo DStudio! Saya sudah melakukan pemesanan.\n" .
-                                   "Kode Tiket: #{$order->ticket_id}\n" .
-                                   "Nama: {$order->name}\n" .
-                                   "Layanan: {$order->service->name}\n" .
-                                   "Total: Rp" . number_format($order->total_price, 0, ',', '.') . "\n" .
+                                   "Kode Tiket: #{$pesanan->kode_tiket}\n" .
+                                   "Nama: {$pesanan->nama_pelanggan}\n" .
+                                   "Layanan: {$pesanan->layanan->nama_layanan}\n" .
+                                   "Total: Rp" . number_format($pesanan->total_bayar, 0, ',', '.') . "\n" .
                                    "Mohon dikonfirmasi. Terima kasih!";
                         $waLink = "https://wa.me/{$whatsappNumber}?text=" . urlencode($message);
                     @endphp
