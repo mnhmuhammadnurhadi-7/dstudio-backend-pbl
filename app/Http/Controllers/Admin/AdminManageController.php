@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 /**
  * AdminManageController
@@ -51,10 +50,7 @@ class AdminManageController extends Controller
         $validated['nama_admin'] = $validated['name'];
         unset($validated['name']);
 
-        // Hash password sebelum disimpan ke database
-        $validated['password'] = Hash::make($validated['password']);
-
-        // Simpan ke database
+        // Simpan ke database (password auto-hash oleh model casts)
         Admin::create($validated);
 
         return redirect()->route('admin.admins.index')->with('success', 'Admin berhasil ditambahkan.');

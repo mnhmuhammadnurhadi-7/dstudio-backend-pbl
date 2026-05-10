@@ -29,7 +29,9 @@
                 <th class="px-4 py-3 text-left">Nama</th>
                 <th class="px-4 py-3 text-left">Layanan</th>
                 <th class="px-4 py-3 text-left">Total</th>
+                <th class="px-4 py-3 text-left">Status</th>
                 <th class="px-4 py-3 text-left">Rating</th>
+                <th class="px-4 py-3 text-left">Admin</th>
                 <th class="px-4 py-3 text-left">Tgl Selesai</th>
                 <th class="px-4 py-3 text-left">Hasil</th>
             </tr>
@@ -42,12 +44,35 @@
                     <td class="px-4 py-3">{{ $item->layanan->nama_layanan }}</td>
                     <td class="px-4 py-3">Rp{{ number_format($item->total_bayar, 0, ',', '.') }}</td>
                     <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold {{ $item->keterangan_status === 'fix' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800' }}">
+                            {{ $item->keterangan_status === 'fix' ? 'FIX' : 'REVISI' }}
+                        </span>
+                        @if($item->catatan_revisi)
+                            <div class="text-xs text-gray-500 mt-1" title="{{ $item->catatan_revisi }}">
+                                <i class="fas fa-comment mr-1"></i>{{ Str::limit($item->catatan_revisi, 20) }}
+                            </div>
+                        @endif
+                    </td>
+                    <td class="px-4 py-3">
                         @if($item->rating)
                             <div class="flex gap-1">
                                 @for($i = 1; $i <= 5; $i++)
                                     <i class="fas fa-star {{ $i <= $item->rating->nilai_rating ? 'text-yellow-400' : 'text-gray-300' }}"></i>
                                 @endfor
                             </div>
+                        @else
+                            <span class="text-gray-400">-</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                        @if($item->adminUpdatedBy)
+                            <div class="flex items-center gap-1">
+                                <i class="fas fa-user text-gray-400"></i>
+                                {{ $item->adminUpdatedBy->nama_admin }}
+                            </div>
+                            @if($item->admin_updated_at)
+                                <div class="text-xs text-gray-400">{{ $item->admin_updated_at->format('d M H:i') }}</div>
+                            @endif
                         @else
                             <span class="text-gray-400">-</span>
                         @endif
@@ -65,7 +90,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                    <td colspan="9" class="px-4 py-8 text-center text-gray-500">
                         Belum ada pesanan yang selesai
                     </td>
                 </tr>

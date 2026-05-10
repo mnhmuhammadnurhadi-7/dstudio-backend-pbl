@@ -44,17 +44,21 @@ class Pesanan extends Model
      * $fillable: Kolom yang boleh diisi massal
      */
     protected $fillable = [
-        'kode_tiket',      // Kode unik tiket (DST-XXX)
-        'id_layanan',      // Foreign key ke layanan
-        'id_admin',        // Foreign key ke admin (nullable)
-        'nama_pelanggan',  // Nama customer
-        'no_wa',           // Nomor WhatsApp
+        'kode_tiket',       // Kode unik tiket (DST-XXX-XXX-XXX)
+        'id_layanan',       // Foreign key ke layanan
+        'id_admin',         // Foreign key ke admin (nullable)
+        'admin_updated_by', // Foreign key admin yang update terakhir
+        'nama_pelanggan',   // Nama customer
+        'no_wa',            // Nomor WhatsApp
         'link_foto_mentah', // Link Google Drive foto asli
-        'catatan',         // Catatan untuk editor
-        'total_bayar',     // Total harga
-        'status_pesanan',  // Status pesanan
-        'link_foto_hasil', // Link Google Drive hasil edit
-        'selesai_at',      // Timestamp selesai
+        'catatan',          // Catatan untuk editor
+        'catatan_revisi',   // Catatan untuk revisi
+        'total_bayar',      // Total harga
+        'status_pesanan',   // Status pesanan
+        'keterangan_status', // Keterangan: fix atau revisi
+        'link_foto_hasil',  // Link Google Drive hasil edit
+        'selesai_at',       // Timestamp selesai
+        'admin_updated_at', // Timestamp update oleh admin
     ];
 
     /**
@@ -64,6 +68,7 @@ class Pesanan extends Model
         'total_bayar' => 'integer',
         'created_at' => 'datetime',
         'selesai_at' => 'datetime',
+        'admin_updated_at' => 'datetime',
     ];
 
     /**
@@ -83,14 +88,32 @@ class Pesanan extends Model
 
     /**
      * Generate kode tiket unik
-     * Format: DST-{3 digit random angka}
+     * Format: DST-{3 digit nomor urut}-{3 digit akhir nomor telepon}-{3 digit timestamp}
+     * Contoh: DST-001-123-456
      */
     public function generateKodeTiket()
     {
-        do {
-            $randomNumber = str_pad(mt_rand(0, 999), 3, '0', STR_PAD_LEFT);
-            $kodeTiket = 'DST-' . $randomNumber;
-        } while (self::where('kode_tiket', $kodeTiket)->exists());
+        // Dapatkan nomor urut pesanan (hitung total pesanan + 1)
+        $orderCount = self::count() + 1;
+        $orderNumber = str_pad($orderCount % 1000, 3, '0', STR_PAD_LEFT);
+        
+        // Ambil 3 digit terakhir dari nomor telepon (hapus karakter non-angka)
+        $phoneDigits = preg_replace('/\D/', '', $this->no_wa);
+        $phoneLast3 = substr($phoneDigits, -3);
+        $phoneLast3 = str_pad($phoneLast3, 3, '0', STR_PAD_LEFT);
+        
+        // 3 digit dari timestamp (milisecond terakhir)
+        $timestamp = microtime(true);
+        $timestampPart = substr(str_replace('.', '', $timestamp), -3);
+        
+        $kodeTiket = "DST-{$orderNumber}-{$phoneLast3}-{$timestampPart}";
+        
+        // Pastikan unik
+        while (self::where('kode_tiket', $kodeTiket)->exists()) {
+            $timestamp = microtime(true);
+            $timestampPart = substr(str_replace('.', '', $timestamp), -3);
+            $kodeTiket = "DST-{$orderNumber}-{$phoneLast3}-{$timestampPart}";
+        }
 
         return $kodeTiket;
     }
@@ -111,6 +134,15 @@ class Pesanan extends Model
     public function admin()
     {
         return $this->belongsTo(Admin::class, 'id_admin', 'id_admin');
+    }
+
+    /**
+     * Relasi: Pesanan belongs to Admin (admin yang terakhir update)
+     * Track siapa admin yang terakhir mengupdate status pesanan
+     */
+    public function adminUpdatedBy()
+    {
+        return $this->belongsTo(Admin::class, 'admin_updated_by', 'id_admin');
     }
 
     /**

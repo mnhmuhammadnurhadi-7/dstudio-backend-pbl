@@ -12,7 +12,7 @@
 
 <section class="py-12">
     <div class="max-w-3xl mx-auto px-6">
-        <!-- Progress Bar -->
+        <!-- Progress Bar - 3 Steps: Diterima, Diproses, Selesai -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <div class="flex justify-between items-center mb-4">
                 @php
@@ -20,9 +20,11 @@
                         'terkirim' => ['Diterima', 1],
                         'diproses' => ['Diproses', 2],
                         'selesai' => ['Selesai', 3],
-                        'revisi' => ['Revisi', 4],
                     ];
-                    $currentStep = $steps[$pesanan->status_pesanan][1] ?? 1;
+                    
+                    // Jika revisi, tetap tampilkan sebagai selesai dengan box revisi merah
+                    $displayStatus = $pesanan->status_pesanan === 'revisi' ? 'selesai' : $pesanan->status_pesanan;
+                    $currentStep = $steps[$displayStatus][1] ?? 1;
                 @endphp
                 
                 @foreach($steps as $key => $info)
@@ -30,7 +32,7 @@
                         $stepNum = $info[1];
                         $stepName = $info[0];
                         $isActive = $stepNum <= $currentStep;
-                        $isCurrent = $key === $pesanan->status_pesanan;
+                        $isCurrent = $key === $displayStatus;
                     @endphp
                     <div class="flex flex-col items-center flex-1">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2
@@ -43,12 +45,31 @@
                         </div>
                         <span class="text-xs font-semibold {{ $isActive ? 'text-gray-800' : 'text-gray-400' }}">{{ $stepName }}</span>
                     </div>
-                    @if($stepNum < 4)
+                    @if($stepNum < 3)
                         <div class="flex-1 h-1 mx-2 {{ $stepNum < $currentStep ? 'bg-green-500' : 'bg-gray-200' }}"></div>
                     @endif
                 @endforeach
             </div>
         </div>
+        
+        <!-- Box Revisi Merah (Hanya jika status revisi) -->
+        @if($pesanan->status_pesanan === 'revisi')
+            <div class="bg-red-100 border-2 border-red-500 rounded-lg p-6 mb-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center">
+                        <i class="fas fa-exclamation text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-red-700">REVISI</h3>
+                </div>
+                <p class="text-red-600">Pesanan Anda sedang dalam proses revisi. Admin akan menghubungi Anda jika diperlukan informasi tambahan.</p>
+                @if($pesanan->catatan_revisi)
+                    <div class="mt-3 p-3 bg-white rounded border-l-4 border-red-500">
+                        <p class="text-sm text-gray-600 font-semibold">Catatan dari Admin:</p>
+                        <p class="text-gray-700">{{ $pesanan->catatan_revisi }}</p>
+                    </div>
+                @endif
+            </div>
+        @endif
 
         <!-- Order Details -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -116,7 +137,7 @@
                     <h3 class="text-xl font-bold mb-2">Sedang Diproses</h3>
                     <p class="text-gray-600">Foto kamu sedang dalam proses editing oleh tim profesional kami.</p>
                 </div>
-            @elseif($pesanan->status_pesanan === 'selesai')
+            @elseif(in_array($pesanan->status_pesanan, ['selesai', 'revisi']))
                 <div class="text-center">
                     <i class="fas fa-check-circle text-5xl text-green-500 mb-4"></i>
                     <h3 class="text-xl font-bold mb-2">Pesanan Selesai!</h3>
@@ -127,12 +148,6 @@
                             <i class="fas fa-download mr-2"></i>Download Hasil
                         </a>
                     @endif
-                </div>
-            @elseif($pesanan->status_pesanan === 'revisi')
-                <div class="text-center">
-                    <i class="fas fa-edit text-5xl text-orange-500 mb-4"></i>
-                    <h3 class="text-xl font-bold mb-2">Perlu Revisi</h3>
-                    <p class="text-gray-600">Admin membutuhkan revisi pada foto kamu. Silakan tunggu informasi lebih lanjut.</p>
                 </div>
             @endif
         </div>

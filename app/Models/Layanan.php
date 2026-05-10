@@ -63,6 +63,6 @@ class Layanan extends Model
      */
     public function pesanan()
     {
-        return $this->hasMany(Order::class, 'id_layanan', 'id_layanan');
+        return $this->hasMany(Pesanan::class, 'id_layanan', 'id_layanan');
     }
 }

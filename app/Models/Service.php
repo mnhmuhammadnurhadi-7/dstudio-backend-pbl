@@ -33,12 +33,12 @@ class Service extends Model
     ];
 
     /**
-     * Relasi: Service has many Orders
-     * Satu layanan bisa memiliki banyak order
-     * Contoh penggunaan: $service->orders (mengakses semua order untuk layanan ini)
+     * Relasi: Service has many Pesanan
+     * Satu layanan bisa memiliki banyak pesanan
+     * Contoh penggunaan: $service->pesanan (mengakses semua pesanan untuk layanan ini)
      */
-    public function orders()
+    public function pesanan()
     {
-        return $this->hasMany(Order::class);
+        return $this->hasMany(Pesanan::class, 'id_layanan');
     }
 }

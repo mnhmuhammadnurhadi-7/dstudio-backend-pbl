@@ -14,6 +14,9 @@
     <a href="{{ route('admin.dashboard', ['status' => 'diproses']) }}" class="px-4 py-2 rounded-lg font-semibold {{ $status === 'diproses' ? 'bg-purple-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-100' }}">
         Diproses <span class="ml-1 bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full text-xs">{{ $counts['diproses'] }}</span>
     </a>
+    <a href="{{ route('admin.dashboard', ['status' => 'selesai']) }}" class="px-4 py-2 rounded-lg font-semibold {{ $status === 'selesai' ? 'bg-green-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-100' }}">
+        Selesai <span class="ml-1 bg-green-200 text-green-800 px-2 py-0.5 rounded-full text-xs">{{ $counts['selesai'] }}</span>
+    </a>
 </div>
 
 <!-- Search -->
@@ -81,6 +84,11 @@
                         <span class="px-2 py-1 rounded-full text-xs font-semibold {{ $statusColors[$item->status_pesanan] }}">
                             {{ $statusLabels[$item->status_pesanan] }}
                         </span>
+                        @if($item->status_pesanan === 'selesai' && $item->keterangan_status)
+                            <span class="ml-1 px-2 py-0.5 rounded-full text-xs font-semibold {{ $item->keterangan_status === 'fix' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800' }}">
+                                {{ $item->keterangan_status === 'fix' ? 'FIX' : 'REVISI' }}
+                            </span>
+                        @endif
                     </td>
                     <td class="px-4 py-3 text-sm">{{ $item->created_at->format('d M H:i') }}</td>
                     <td class="px-4 py-3">
@@ -101,9 +109,9 @@
                                 </button>
                             </form>
                             
-                            <!-- Upload Result -->
-                            @if(in_array($item->status_pesanan, ['diproses', 'selesai']))
-                                <form action="{{ route('admin.orders.result', $item) }}" method="POST" class="flex gap-1">
+                            <!-- Upload Result (Hanya untuk status Selesai) -->
+                            @if($item->status_pesanan === 'selesai')
+                                <form action="{{ route('admin.orders.result', $item) }}" method="POST" class="flex gap-1 mt-1">
                                     @csrf
                                     @method('PATCH')
                                     <input type="url" name="result_link" value="{{ $item->link_foto_hasil }}" 
@@ -113,6 +121,25 @@
                                         <i class="fas fa-upload"></i>
                                     </button>
                                 </form>
+                                
+                                <!-- Tombol Revisi untuk pesanan selesai -->
+                                <form action="{{ route('admin.orders.status', $item) }}" method="POST" class="mt-1">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="revisi">
+                                    <input type="text" name="catatan_revisi" placeholder="Catatan revisi..." 
+                                        class="text-sm border rounded px-2 py-1 w-full mb-1" required>
+                                    <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 w-full">
+                                        <i class="fas fa-undo mr-1"></i>Jadikan Revisi
+                                    </button>
+                                </form>
+                            @endif
+                            
+                            <!-- Info Admin -->
+                            @if($item->adminUpdatedBy)
+                                <div class="text-xs text-gray-500 mt-1">
+                                    <i class="fas fa-user mr-1"></i>{{ $item->adminUpdatedBy->nama_admin }}
+                                </div>
                             @endif
                         </div>
                     </td>
