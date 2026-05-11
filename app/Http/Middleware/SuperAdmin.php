@@ -19,13 +19,19 @@ class SuperAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Cek session admin_role
-        // abort(403) akan menampilkan halaman error 403 Forbidden
         if (session('admin_role') !== 'superadmin') {
+            // Jika request API, return JSON 403
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses ditolak. Superadmin only.',
+                ], 403);
+            }
+            
+            // Untuk web, abort dengan 403
             abort(403, 'Akses ditolak.');
         }
         
-        // Jika role superadmin, lanjutkan request
         return $next($request);
     }
 }

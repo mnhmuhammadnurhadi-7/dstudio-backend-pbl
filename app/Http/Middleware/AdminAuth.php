@@ -20,13 +20,19 @@ class AdminAuth
     public function handle(Request $request, Closure $next): Response
     {
         // Cek apakah ada session admin_id
-        // Jika tidak ada, artinya user belum login
         if (!session('admin_id')) {
-            // Redirect ke halaman login admin
+            // Jika request expects JSON (API), return 401
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Please login.',
+                ], 401);
+            }
+            
+            // Untuk web, redirect ke halaman login
             return redirect('/admin18908');
         }
         
-        // Jika sudah login, lanjutkan ke request berikutnya
         return $next($request);
     }
 }
