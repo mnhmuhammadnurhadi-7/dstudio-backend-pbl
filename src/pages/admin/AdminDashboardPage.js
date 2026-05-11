@@ -30,6 +30,12 @@ export function AdminDashboardPage() {
     onError: () => setError('Gagal upload hasil'),
   });
 
+  const confirmMutation = useMutation({
+    mutationFn: (ticketId) => adminApi.confirmCompletedOrder(ticketId),
+    onSuccess: () => refetch(),
+    onError: () => setError('Gagal konfirmasi pesanan'),
+  });
+
   const orders = data?.orders || [];
   const counts = data?.counts || { all: 0, terkirim: 0, diproses: 0, selesai: 0 };
 
@@ -112,16 +118,19 @@ export function AdminDashboardPage() {
         {isLoading ? (
           <div className="p-8 text-center">Memuat...</div>
         ) : (
-          <table className="w-full min-w-[1000px]">
+          <table className="w-full min-w-[1400px]">
             <thead className="bg-dstudio-dark text-white">
               <tr>
                 <th className="px-4 py-3 text-left text-sm">Tiket ID</th>
                 <th className="px-4 py-3 text-left text-sm">Nama</th>
-                <th className="px-4 py-3 text-left text-sm">WA</th>
+                <th className="px-4 py-3 text-left text-sm">No WA</th>
                 <th className="px-4 py-3 text-left text-sm">Layanan</th>
-                <th className="px-4 py-3 text-left text-sm">Total</th>
+                <th className="px-4 py-3 text-left text-sm">Total Bayar</th>
+                <th className="px-4 py-3 text-left text-sm">Catatan</th>
                 <th className="px-4 py-3 text-left text-sm">Status</th>
-                <th className="px-4 py-3 text-left text-sm">Tgl Masuk</th>
+                <th className="px-4 py-3 text-left text-sm">Tanggal Masuk</th>
+                <th className="px-4 py-3 text-left text-sm">Timestamp</th>
+                <th className="px-4 py-3 text-left text-sm">Admin</th>
                 <th className="px-4 py-3 text-left text-sm">Aksi</th>
               </tr>
             </thead>
@@ -144,16 +153,26 @@ export function AdminDashboardPage() {
                   </td>
                   <td className="px-4 py-3">{order.layanan?.nama_layanan}</td>
                   <td className="px-4 py-3">{formatPrice(order.total_bayar)}</td>
+                  <td className="px-4 py-3 max-w-xs truncate" title={order.catatan}>
+                    {order.catatan || '-'}
+                  </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={order.status_pesanan} />
                   </td>
                   <td className="px-4 py-3">{formatDate(order.created_at)}</td>
+                  <td className="px-4 py-3 text-xs text-gray-500">
+                    {order.admin_updated_at ? formatDate(order.admin_updated_at) : '-'}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {order.adminUpdatedBy?.nama_admin || '-'}
+                  </td>
                   <td className="px-4 py-3">
                     <OrderActions
                       order={order}
                       onStatusChange={handleStatusChange}
                       onResultUpload={handleResultUpload}
-                      isLoading={statusMutation.isLoading || resultMutation.isLoading}
+                      onConfirm={confirmMutation.mutate}
+                      isLoading={statusMutation.isLoading || resultMutation.isLoading || confirmMutation.isLoading}
                     />
                   </td>
                 </tr>
@@ -166,7 +185,7 @@ export function AdminDashboardPage() {
   );
 }
 
-function OrderActions({ order, onStatusChange, onResultUpload, isLoading }) {
+function OrderActions({ order, onStatusChange, onResultUpload, onConfirm, isLoading }) {
   const [selectedStatus, setSelectedStatus] = useState(order.status_pesanan);
   const [resultLink, setResultLink] = useState('');
   const [revisiNote, setRevisiNote] = useState('');
@@ -218,8 +237,15 @@ function OrderActions({ order, onStatusChange, onResultUpload, isLoading }) {
         </div>
       )}
 
-      {/* Revisi Note (only if status = diproses) */}
-      {order.status_pesanan === 'diproses' && (
+      {/* Revisi Note (only if status is revisi) */}
+      {order.status_pesanan === 'revisi' && (
+        <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
+          <strong>Catatan Revisi:</strong> {order.catatan_revisi || '-'}
+        </div>
+      )}
+
+      {/* Revisi Button (only if status is selesai) */}
+      {order.status_pesanan === 'selesai' && (
         <div className="flex gap-2">
           <input
             type="text"
@@ -238,6 +264,23 @@ function OrderActions({ order, onStatusChange, onResultUpload, isLoading }) {
           >
             Revisi
           </button>
+        </div>
+      )}
+
+      {/* Confirm Completed Order */}
+      {order.status_pesanan === 'selesai' && order.link_foto_hasil && order.keterangan_status !== 'completed_confirmed' && (
+        <button
+          onClick={() => onConfirm(order.kode_tiket)}
+          disabled={isLoading}
+          className="w-full text-xs bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+        >
+          Konfirmasi Pesanan Selesai
+        </button>
+      )}
+
+      {order.keterangan_status === 'completed_confirmed' && (
+        <div className="text-xs text-green-600 font-medium text-center">
+          ✓ Sudah Dikonfirmasi
         </div>
       )}
     </div>

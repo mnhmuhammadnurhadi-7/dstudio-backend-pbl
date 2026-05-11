@@ -89,7 +89,14 @@ export function AdminCompletedPage() {
                   </td>
                   <td className="px-4 py-3">
                     {order.rating ? (
-                      <StaticRatingStars value={order.rating.nilai_rating} />
+                      <div>
+                        <StaticRatingStars value={order.rating.nilai_rating} />
+                        {order.rating.ulasan && (
+                          <p className="text-xs text-gray-600 mt-1 max-w-xs truncate" title={order.rating.ulasan}>
+                            {order.rating.ulasan}
+                          </p>
+                        )}
+                      </div>
                     ) : (
                       '-'
                     )}

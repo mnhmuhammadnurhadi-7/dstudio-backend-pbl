@@ -16,7 +16,7 @@ export function AdminServicesPage() {
     onSuccess: () => refetch(),
   });
 
-  const services = data?.services || [];
+  const services = Array.isArray(data) ? data : data?.services || [];
 
   const handleDelete = (id) => {
     if (window.confirm('Yakin ingin menghapus layanan ini?')) {

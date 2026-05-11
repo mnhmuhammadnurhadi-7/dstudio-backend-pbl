@@ -10,6 +10,8 @@ export const adminApi = {
   getCompletedOrders: (params) => axios.get('/api/admin/orders/completed', { params }).then(res => res.data),
   updateStatus: (ticketId, data) => axios.patch(`/api/admin/orders/${ticketId}/status`, data).then(res => res.data),
   updateResult: (ticketId, data) => axios.patch(`/api/admin/orders/${ticketId}/result`, data).then(res => res.data),
+  confirmPayment: (ticketId) => axios.patch(`/api/admin/orders/${ticketId}/payment`).then(res => res.data),
+  confirmCompletedOrder: (ticketId) => axios.patch(`/api/admin/orders/${ticketId}/confirm-completed`).then(res => res.data),
   
   // Services
   getAdminServices: () => axios.get('/api/admin/services').then(res => res.data),

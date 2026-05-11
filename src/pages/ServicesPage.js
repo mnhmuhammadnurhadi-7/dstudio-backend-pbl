@@ -7,7 +7,7 @@ import { servicesApi } from '../services/servicesApi';
 export function ServicesPage() {
   const { data, isLoading, error } = useQuery({ queryKey: ['services'], queryFn: servicesApi.getServices });
 
-  const services = data?.services || [];
+  const services = Array.isArray(data) ? data : data?.services || [];
 
   return (
     <PublicLayout>

@@ -28,9 +28,9 @@ export function StatusResultPage() {
     },
   });
 
-  const handleRate = (value) => {
+  const handleRate = (ratingData) => {
     setRatingError(null);
-    rateMutation.mutate({ kode_tiket: id, nilai_rating: value });
+    rateMutation.mutate({ kode_tiket: id, ...ratingData });
   };
 
   const order = data;
