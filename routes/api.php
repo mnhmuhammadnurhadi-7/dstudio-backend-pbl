@@ -43,8 +43,11 @@ Route::middleware(['admin.auth'])->prefix('admin')->group(function () {
     Route::get('/orders', [AdminApiController::class, 'getOrders']);
     Route::get('/orders/completed', [AdminApiController::class, 'getCompletedOrders']);
     Route::patch('/orders/{order}/status', [AdminApiController::class, 'updateStatus']);
+    Route::put('/pesanan/{kode}/status', [AdminApiController::class, 'updateOrderStatus']);
     Route::patch('/orders/{order}/result', [AdminApiController::class, 'updateResult']);
     Route::patch('/orders/{order}/payment', [AdminApiController::class, 'confirmPayment']);
+    Route::patch('/orders/{order}/confirm-completed', [AdminApiController::class, 'confirmCompletedOrder']);
+    Route::delete('/orders/{order}', [AdminApiController::class, 'deleteOrder']);
     
     // Superadmin Only Routes
     Route::middleware(['superadmin'])->group(function () {
@@ -58,7 +61,9 @@ Route::middleware(['admin.auth'])->prefix('admin')->group(function () {
         
         // Admins Management
         Route::get('/admins', [AdminApiController::class, 'getAdmins']);
+        Route::get('/admins/{admin}', [AdminApiController::class, 'getAdmin']);
         Route::post('/admins', [AdminApiController::class, 'createAdmin']);
+        Route::put('/admins/{admin}', [AdminApiController::class, 'updateAdmin']);
         Route::delete('/admins/{admin}', [AdminApiController::class, 'deleteAdmin']);
         
         // CMS

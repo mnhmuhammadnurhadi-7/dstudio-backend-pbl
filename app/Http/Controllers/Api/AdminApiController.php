@@ -32,8 +32,18 @@ class AdminApiController extends Controller
         $query = Pesanan::with(['layanan', 'admin', 'adminUpdatedBy'])
             ->where('status_pesanan', '!=', 'dibatalkan');
 
-        if ($status && in_array($status, ['terkirim', 'diproses', 'selesai'])) {
-            $query->where('status_pesanan', $status);
+        if ($status) {
+            if ($status === 'revisi') {
+                $query->whereRaw('LOWER(keterangan_status) = ?', ['revisi']);
+            } elseif ($status === 'selesai') {
+                $query->where('status_pesanan', 'selesai')
+                      ->where(function($q) {
+                          $q->whereRaw('LOWER(keterangan_status) != ?', ['revisi'])
+                            ->orWhereNull('keterangan_status');
+                      });
+            } elseif (in_array($status, ['terkirim', 'diproses'])) {
+                $query->where('status_pesanan', $status);
+            }
         }
 
         if ($search) {
@@ -49,7 +59,12 @@ class AdminApiController extends Controller
             'all' => Pesanan::where('status_pesanan', '!=', 'dibatalkan')->count(),
             'terkirim' => Pesanan::where('status_pesanan', 'terkirim')->count(),
             'diproses' => Pesanan::where('status_pesanan', 'diproses')->count(),
-            'selesai' => Pesanan::where('status_pesanan', 'selesai')->count(),
+            'selesai' => Pesanan::where('status_pesanan', 'selesai')
+                        ->where(function($q) {
+                            $q->whereRaw('LOWER(keterangan_status) != ?', ['revisi'])
+                              ->orWhereNull('keterangan_status');
+                        })->count(),
+            'revisi' => Pesanan::whereRaw('LOWER(keterangan_status) = ?', ['revisi'])->count(),
         ];
 
         return response()->json([
@@ -65,8 +80,8 @@ class AdminApiController extends Controller
     {
         $search = $request->get('search');
 
-        $query = Pesanan::with(['layanan', 'admin', 'adminUpdatedBy', 'rating'])
-            ->where('status_pesanan', 'selesai');
+        $query = Pesanan::with(['layanan', 'admin:id_admin,nama_admin', 'adminUpdatedBy:id_admin,nama_admin', 'rating'])
+            ->whereIn('status_pesanan', ['selesai', 'revisi']);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -96,11 +111,19 @@ class AdminApiController extends Controller
             'admin_updated_at' => now(),
         ];
 
+        // Set admin pertama yang mengerjakan pesanan (jika belum ada)
+        if (!$order->id_admin) {
+            $updateData['id_admin'] = session('admin_id');
+        }
+
         if ($validated['status'] === 'selesai') {
             $updateData['keterangan_status'] = 'fix';
             $updateData['selesai_at'] = now();
         } elseif ($validated['status'] === 'revisi') {
-            $updateData['keterangan_status'] = 'revisi';
+            // Status revisi tetap disimpan sebagai 'selesai' dengan keterangan_status 'Revisi'
+            // agar histori tetap terjaga di tabel selesai
+            $updateData['status_pesanan'] = 'selesai';
+            $updateData['keterangan_status'] = 'Revisi';
             if ($request->has('catatan_revisi')) {
                 $updateData['catatan_revisi'] = $validated['catatan_revisi'];
             }
@@ -115,31 +138,139 @@ class AdminApiController extends Controller
     }
 
     /**
-     * Upload result link for completed order
+     * Upload result link for order
      */
     public function updateResult(Request $request, Pesanan $order)
     {
-        if ($order->status_pesanan !== 'selesai') {
+        try {
+            // Cek session admin
+            if (!session('admin_id')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Admin tidak terautentikasi, silakan login kembali',
+                ], 401);
+            }
+
+            $validated = $request->validate([
+                'result_link' => 'required|string|max:500',
+            ], [
+                'result_link.required' => 'Link hasil wajib diisi',
+                'result_link.string' => 'Link hasil harus berupa string',
+                'result_link.max' => 'Link hasil maksimal 500 karakter',
+            ]);
+
+            // Basic URL validation (lebih fleksibel)
+            $link = $validated['result_link'];
+            if (!filter_var($link, FILTER_VALIDATE_URL) && !str_starts_with($link, 'http://') && !str_starts_with($link, 'https://')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Link harus berupa URL yang valid (dimulai dengan http:// atau https://)',
+                ], 422);
+            }
+
+            $order->update([
+                'link_foto_hasil' => $validated['result_link'],
+                'admin_updated_by' => session('admin_id'),
+                'admin_updated_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Link hasil berhasil diupload',
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Upload hasil hanya diperbolehkan jika status pesanan sudah "Selesai"',
-            ], 400);
+                'message' => 'Validasi gagal: ' . implode(', ', $e->validator->errors()->all()),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
         }
+    }
 
-        $validated = $request->validate([
-            'result_link' => 'required|url',
-        ]);
+    /**
+     * Update order status with validation for link_hasil
+     */
+    public function updateOrderStatus(Request $request, $kode)
+    {
+        try {
+            $validated = $request->validate([
+                'status' => 'required|string|in:terkirim,diproses,selesai,revisi,dibatalkan',
+                'link_hasil' => 'nullable|string|max:500',
+            ]);
 
-        $order->update([
-            'link_foto_hasil' => $validated['result_link'],
-            'admin_updated_by' => session('admin_id'),
-            'admin_updated_at' => now(),
-        ]);
+            // Cari pesanan berdasarkan kode
+            $order = Pesanan::where('kode_tiket', $kode)->first();
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pesanan tidak ditemukan',
+                ], 404);
+            }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Link hasil berhasil diupload',
-        ]);
+            // Validasi link_hasil untuk status selesai atau revisi
+            if ($validated['status'] === 'selesai' || $validated['status'] === 'revisi') {
+                // Cek link_hasil di database
+                $existingLink = $order->link_foto_hasil;
+                $newLink = $validated['link_hasil'] ?? null;
+
+                // Untuk status 'selesai', link_hasil WAJIB ada (baik dari database atau input baru)
+                if ($validated['status'] === 'selesai' && empty($existingLink) && empty($newLink)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'URL foto hasil belum diisi. Isi URL terlebih dahulu sebelum mengubah status menjadi Selesai.',
+                    ], 422);
+                }
+            }
+
+            // Update status
+            $updateData = ['status_pesanan' => $validated['status']];
+
+            // Set link_foto_hasil jika ada link baru
+            if (!empty($validated['link_hasil'])) {
+                $updateData['link_foto_hasil'] = $validated['link_hasil'];
+            }
+
+            // Set admin pertama yang mengerjakan pesanan
+            if (!$order->id_admin) {
+                $updateData['id_admin'] = session('admin_id');
+            }
+
+            // Set keterangan_status untuk revisi
+            if ($validated['status'] === 'revisi') {
+                $updateData['status_pesanan'] = 'selesai'; // Tetap selesai di database
+                $updateData['keterangan_status'] = 'Revisi';
+            } elseif ($validated['status'] === 'selesai') {
+                $updateData['keterangan_status'] = 'fix';
+                $updateData['selesai_at'] = now();
+            }
+
+            // Update admin yang terakhir mengubah
+            $updateData['admin_updated_by'] = session('admin_id');
+            $updateData['admin_updated_at'] = now();
+
+            $order->update($updateData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status pesanan berhasil diperbarui',
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal: ' . implode(', ', $e->validator->errors()->all()),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -156,6 +287,37 @@ class AdminApiController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Pembayaran dikonfirmasi dan status diubah ke Diproses',
+        ]);
+    }
+
+    /**
+     * Confirm completed order and update to public view
+     */
+    public function confirmCompletedOrder(Pesanan $order)
+    {
+        if ($order->status_pesanan !== 'selesai') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya bisa mengkonfirmasi pesanan yang sudah selesai',
+            ], 400);
+        }
+
+        if (!$order->link_foto_hasil) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload link hasil foto terlebih dahulu',
+            ], 400);
+        }
+
+        $order->update([
+            'admin_updated_by' => session('admin_id'),
+            'admin_updated_at' => now(),
+            'keterangan_status' => 'completed_confirmed',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesanan selesai dikonfirmasi dan sudah dapat dilihat oleh pelanggan',
         ]);
     }
 
@@ -259,6 +421,14 @@ class AdminApiController extends Controller
     }
 
     /**
+     * Get single admin
+     */
+    public function getAdmin(Admin $admin)
+    {
+        return response()->json($admin);
+    }
+
+    /**
      * Create new admin
      */
     public function createAdmin(Request $request)
@@ -278,6 +448,33 @@ class AdminApiController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Admin berhasil ditambahkan',
+        ]);
+    }
+
+    /**
+     * Update admin
+     */
+    public function updateAdmin(Request $request, Admin $admin)
+    {
+        $validated = $request->validate([
+            'nama_admin' => 'required|string|max:100',
+            'username' => 'required|string|max:50|unique:admins,username,' . $admin->id,
+            'password' => 'nullable|string|min:6',
+            'role' => 'required|in:admin,superadmin',
+        ]);
+
+        // Only update password if provided
+        if (empty($validated['password'])) {
+            unset($validated['password']);
+        } else {
+            $validated['password'] = bcrypt($validated['password']);
+        }
+
+        $admin->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin berhasil diperbarui',
         ]);
     }
 
@@ -347,6 +544,19 @@ class AdminApiController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Konten berhasil diperbarui',
+        ]);
+    }
+
+    /**
+     * Delete order
+     */
+    public function deleteOrder(Pesanan $order)
+    {
+        $order->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesanan berhasil dihapus',
         ]);
     }
 }

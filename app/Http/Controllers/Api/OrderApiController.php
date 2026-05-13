@@ -13,7 +13,7 @@ class OrderApiController extends Controller
 {
     public function step1()
     {
-        $services = Layanan::where('is_active', 1)->get();
+        $services = Layanan::orderBy('id_layanan', 'desc')->get();
         return response()->json(['services' => $services]);
     }
 
@@ -49,7 +49,8 @@ class OrderApiController extends Controller
 
     public function step3(Request $request)
     {
-        $service = Layanan::find(session('order.service_id'));
+        $serviceId = $request->query('service_id') ?? session('order.service_id');
+        $service = Layanan::find($serviceId);
         $qrisImage = SiteSettings::getValue('qris_image_path', 'images/qris.png');
 
         return response()->json([
@@ -89,7 +90,7 @@ class OrderApiController extends Controller
 
     public function show($ticketId)
     {
-        $pesanan = Pesanan::with('layanan')->where('kode_tiket', $ticketId)->firstOrFail();
+        $pesanan = Pesanan::with(['layanan', 'rating'])->where('kode_tiket', $ticketId)->firstOrFail();
         return response()->json($pesanan);
     }
 
@@ -99,7 +100,7 @@ class OrderApiController extends Controller
             'ticket_id' => 'required|string',
         ]);
 
-        $pesanan = Pesanan::with('layanan')->where('kode_tiket', $validated['ticket_id'])->first();
+        $pesanan = Pesanan::with(['layanan', 'rating'])->where('kode_tiket', $validated['ticket_id'])->first();
 
         if (!$pesanan) {
             return response()->json(['error' => 'Tiket tidak ditemukan'], 404);
@@ -111,21 +112,29 @@ class OrderApiController extends Controller
     public function submitRating(Request $request)
     {
         $validated = $request->validate([
-            'ticket_id' => 'required|string',
-            'rating' => 'required|integer|between:1,5',
+            'kode_tiket' => 'required|string',
+            'nilai_rating' => 'required|integer|between:1,5',
+            'ulasan' => 'nullable|string',
         ]);
 
-        $pesanan = Pesanan::where('kode_tiket', $validated['ticket_id'])->firstOrFail();
+        $pesanan = Pesanan::where('kode_tiket', $validated['kode_tiket'])->firstOrFail();
 
         if ($pesanan->status_pesanan !== 'selesai') {
             return response()->json(['error' => 'Pesanan belum selesai'], 400);
         }
 
+        // Cek apakah rating sudah ada
+        $existingRating = Rating::where('kode_tiket', $validated['kode_tiket'])->first();
+        if ($existingRating) {
+            return response()->json(['error' => 'Rating sudah diberikan'], 400);
+        }
+
         Rating::create([
             'kode_tiket' => $pesanan->kode_tiket,
-            'nilai_rating' => $validated['rating'],
+            'nilai_rating' => $validated['nilai_rating'],
+            'ulasan' => $validated['ulasan'] ?? null,
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Rating submitted']);
+        return response()->json(['success' => true, 'message' => 'Rating berhasil disubmit']);
     }
 }

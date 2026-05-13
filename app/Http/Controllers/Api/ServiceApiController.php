@@ -9,7 +9,7 @@ class ServiceApiController extends Controller
 {
     public function index()
     {
-        $services = Layanan::where('is_active', 1)->get();
+        $services = Layanan::orderBy('id_layanan', 'desc')->get();
         return response()->json($services);
     }
 }
