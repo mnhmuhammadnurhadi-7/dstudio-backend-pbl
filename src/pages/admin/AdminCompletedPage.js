@@ -85,7 +85,7 @@ export function AdminCompletedPage() {
                   <td className="px-4 py-3">{order.layanan?.nama_layanan}</td>
                   <td className="px-4 py-3">{formatPrice(order.total_bayar)}</td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={order.status_pesanan} />
+                    <StatusBadge status={order.status_pesanan} keteranganStatus={order.keterangan_status} />
                   </td>
                   <td className="px-4 py-3">
                     {order.rating ? (
@@ -101,7 +101,7 @@ export function AdminCompletedPage() {
                       '-'
                     )}
                   </td>
-                  <td className="px-4 py-3">{order.adminUpdatedBy?.nama_admin || '-'}</td>
+                  <td className="px-4 py-3">{order.admin?.nama_admin || '-'}</td>
                   <td className="px-4 py-3">{formatDate(order.selesai_at)}</td>
                   <td className="px-4 py-3">
                     {order.link_foto_hasil ? (

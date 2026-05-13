@@ -125,8 +125,8 @@ export function Step1Page() {
               </div>
 
               <div className="pt-4">
-                <ButtonPrimary type="submit" fullWidth disabled={mutation.isLoading}>
-                  {mutation.isLoading ? 'Memproses...' : 'Lanjutkan'}
+                <ButtonPrimary type="submit" fullWidth disabled={mutation.isPending}>
+                  {mutation.isPending ? 'Memproses...' : 'Lanjutkan'}
                 </ButtonPrimary>
               </div>
             </form>

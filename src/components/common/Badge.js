@@ -2,11 +2,20 @@ const statusMap = {
   terkirim: 'bg-yellow-100 text-yellow-800',
   diproses: 'bg-purple-100 text-purple-800',
   selesai: 'bg-green-100 text-green-800',
-  revisi: 'bg-orange-100 text-orange-800',
-  dibatalkan: 'bg-red-100 text-red-800',
+  revisi: 'bg-red-100 text-red-800',
+  dibatalkan: 'bg-gray-100 text-gray-800',
 };
 
-export function StatusBadge({ status }) {
+export function StatusBadge({ status, keteranganStatus }) {
+  // Cek jika status selesai tapi dengan keterangan revisi
+  if (status === 'selesai' && keteranganStatus?.toLowerCase() === 'revisi') {
+    return (
+      <span className="inline-block px-2 py-1 rounded-full text-xs font-semibold uppercase bg-red-100 text-red-800">
+        Revisi
+      </span>
+    );
+  }
+  
   const cls = statusMap[status] ?? 'bg-gray-100 text-gray-800';
   return (
     <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold uppercase ${cls}`}>

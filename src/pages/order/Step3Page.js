@@ -77,9 +77,9 @@ export function Step3Page() {
 
             {/* QRIS Image */}
             <div className="bg-gray-100 rounded-lg p-4 inline-block mb-6">
-              {data?.qrisImage ? (
+              {data?.qris_image ? (
                 <img
-                  src={data.qrisImage}
+                  src={data.qris_image}
                   alt="QRIS Code"
                   className="w-64 h-64 object-contain"
                 />
@@ -112,8 +112,8 @@ export function Step3Page() {
               <ButtonSecondary onClick={handleBack} fullWidth>
                 Kembali
               </ButtonSecondary>
-              <ButtonPrimary onClick={handleSubmit} fullWidth disabled={mutation.isLoading}>
-                {mutation.isLoading ? 'Memproses...' : 'Konfirmasi Pesanan'}
+              <ButtonPrimary onClick={handleSubmit} fullWidth disabled={mutation.isPending}>
+                {mutation.isPending ? 'Memproses...' : 'Konfirmasi Pesanan'}
               </ButtonPrimary>
             </div>
           </div>

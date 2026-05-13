@@ -151,8 +151,8 @@ export function AdminCmsPage() {
             </div>
 
             <div className="pt-4">
-              <ButtonPrimary type="submit" fullWidth disabled={mutation.isLoading}>
-                {mutation.isLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
+              <ButtonPrimary type="submit" fullWidth disabled={mutation.isPending}>
+                {mutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
               </ButtonPrimary>
             </div>
           </form>

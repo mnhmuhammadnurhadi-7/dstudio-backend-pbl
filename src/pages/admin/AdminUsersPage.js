@@ -5,7 +5,7 @@ import { RoleBadge } from '../../components/common/Badge';
 import { AlertBanner } from '../../components/common/Alert';
 import { useAuth } from '../../context/AuthContext';
 import { adminApi } from '../../services/adminApi';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Edit } from 'lucide-react';
 
 export function AdminUsersPage() {
   const { authState } = useAuth();
@@ -19,7 +19,7 @@ export function AdminUsersPage() {
     onSuccess: () => refetch(),
   });
 
-  const admins = data?.admins || [];
+  const admins = Array.isArray(data) ? data : data?.admins || [];
 
   const handleDelete = (id) => {
     if (window.confirm('Yakin ingin menghapus admin ini?')) {
@@ -69,10 +69,10 @@ export function AdminUsersPage() {
             </thead>
             <tbody>
               {admins.map((admin) => {
-                const isCurrentUser = admin.id === authState.adminId;
+                const isCurrentUser = admin.id_admin === authState.adminId;
                 return (
                   <tr
-                    key={admin.id}
+                    key={admin.id_admin}
                     className={`border-b hover:bg-gray-50 ${isCurrentUser ? 'bg-yellow-50' : ''}`}
                   >
                     <td className="px-4 py-3 font-medium">
@@ -89,16 +89,25 @@ export function AdminUsersPage() {
                     </td>
                     <td className="px-4 py-3">{formatDate(admin.created_at)}</td>
                     <td className="px-4 py-3">
-                      {!isCurrentUser && (
-                        <button
-                          onClick={() => handleDelete(admin.id)}
-                          disabled={deleteMutation.isLoading}
-                          className="text-red-600 hover:text-red-800 inline-flex items-center gap-1 text-sm"
+                      <div className="flex gap-2">
+                        <Link
+                          to={`/admin/admins/${admin.id_admin}/edit`}
+                          className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-sm"
                         >
-                          <Trash2 className="w-4 h-4" />
-                          Hapus
-                        </button>
-                      )}
+                          <Edit className="w-4 h-4" />
+                          Edit
+                        </Link>
+                        {!isCurrentUser && (
+                          <button
+                            onClick={() => handleDelete(admin.id_admin)}
+                            disabled={deleteMutation.isPending}
+                            className="text-red-600 hover:text-red-800 inline-flex items-center gap-1 text-sm"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Hapus
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

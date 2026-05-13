@@ -58,8 +58,8 @@ export function StatusFormPage() {
                 />
               </div>
 
-              <ButtonPrimary type="submit" fullWidth disabled={mutation.isLoading}>
-                {mutation.isLoading ? 'Mencari...' : 'Cek Status'}
+              <ButtonPrimary type="submit" fullWidth disabled={mutation.isPending}>
+                {mutation.isPending ? 'Mencari...' : 'Cek Status'}
               </ButtonPrimary>
             </form>
 

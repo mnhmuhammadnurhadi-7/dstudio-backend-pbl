@@ -93,7 +93,7 @@ export function AdminServicesPage() {
                       </Link>
                       <button
                         onClick={() => handleDelete(service.id_layanan)}
-                        disabled={deleteMutation.isLoading}
+                        disabled={deleteMutation.isPending}
                         className="text-red-600 hover:text-red-800 inline-flex items-center gap-1 text-sm"
                       >
                         <Trash2 className="w-4 h-4" />

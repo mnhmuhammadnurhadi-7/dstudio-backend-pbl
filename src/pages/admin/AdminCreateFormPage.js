@@ -113,8 +113,8 @@ export function AdminCreateFormPage() {
               <ButtonSecondary fullWidth>Batal</ButtonSecondary>
             </Link>
             <div className="flex-1">
-              <ButtonPrimary type="submit" fullWidth disabled={mutation.isLoading}>
-                {mutation.isLoading ? 'Menyimpan...' : 'Simpan'}
+              <ButtonPrimary type="submit" fullWidth disabled={mutation.isPending}>
+                {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
               </ButtonPrimary>
             </div>
           </div>

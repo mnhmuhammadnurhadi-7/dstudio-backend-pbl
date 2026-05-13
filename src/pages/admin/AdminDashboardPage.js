@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import { StatusBadge } from '../../components/common/Badge';
 import { AlertBanner } from '../../components/common/Alert';
 import { adminApi } from '../../services/adminApi';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, Trash2 } from 'lucide-react';
 
 export function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState('all');
@@ -14,44 +14,45 @@ export function AdminDashboardPage() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['orders', activeTab, search],
     queryFn: () => adminApi.getOrders({ status: activeTab === 'all' ? '' : activeTab, search }),
-    keepPreviousData: true,
   });
 
-  const statusMutation = useMutation({
-    mutationFn: ({ ticketId, status, catatan_revisi }) =>
-      adminApi.updateStatus(ticketId, { status, catatan_revisi }),
-    onSuccess: () => refetch(),
-    onError: () => setError('Gagal update status'),
+  const statusUpdateMutation = useMutation({
+    mutationFn: ({ ticketId, requestBody }) => adminApi.updateOrderStatus(ticketId, requestBody),
+    onSuccess: () => {
+      alert('Status pesanan berhasil diperbarui!');
+      refetch();
+    },
+    onError: (err) => {
+      const errorMessage = err.response?.data?.message || 'Gagal update status';
+      setError(errorMessage);
+    },
   });
 
-  const resultMutation = useMutation({
-    mutationFn: ({ ticketId, data }) => adminApi.updateResult(ticketId, data),
-    onSuccess: () => refetch(),
-    onError: () => setError('Gagal upload hasil'),
-  });
-
-  const confirmMutation = useMutation({
-    mutationFn: (ticketId) => adminApi.confirmCompletedOrder(ticketId),
-    onSuccess: () => refetch(),
-    onError: () => setError('Gagal konfirmasi pesanan'),
+  const deleteMutation = useMutation({
+    mutationFn: (ticketId) => adminApi.deleteOrder(ticketId),
+    onSuccess: () => {
+      alert('Pesanan berhasil dihapus!');
+      refetch();
+    },
+    onError: (err) => {
+      setError('Gagal menghapus pesanan');
+    },
   });
 
   const orders = data?.orders || [];
-  const counts = data?.counts || { all: 0, terkirim: 0, diproses: 0, selesai: 0 };
+  const counts = data?.counts || { all: 0, terkirim: 0, diproses: 0, selesai: 0, revisi: 0 };
 
   const tabs = [
     { key: 'all', label: 'Semua' },
     { key: 'terkirim', label: 'Terkirim' },
     { key: 'diproses', label: 'Diproses' },
     { key: 'selesai', label: 'Selesai' },
+    { key: 'revisi', label: 'Revisi' },
   ];
 
-  const handleStatusChange = (ticketId, newStatus, catatanRevisi = '') => {
-    statusMutation.mutate({ ticketId, status: newStatus, catatan_revisi: catatanRevisi });
-  };
-
-  const handleResultUpload = (ticketId, resultLink) => {
-    resultMutation.mutate({ ticketId, data: { result_link: resultLink } });
+  const handleStatusUpdate = (ticketId, requestBody) => {
+    // Menggunakan mutation baru untuk endpoint PUT /api/admin/pesanan/{kode}/status
+    statusUpdateMutation.mutate({ ticketId, requestBody });
   };
 
   const formatDate = (dateString) => {
@@ -83,11 +84,10 @@ export function AdminDashboardPage() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`pb-3 px-2 font-medium whitespace-nowrap ${
-              activeTab === tab.key
-                ? 'border-b-2 border-dstudio-gold text-dstudio-gold'
-                : 'text-gray-500 hover:text-dstudio-gold'
-            }`}
+            className={`pb-3 px-2 font-medium whitespace-nowrap ${activeTab === tab.key
+              ? 'border-b-2 border-dstudio-gold text-dstudio-gold'
+              : 'text-gray-500 hover:text-dstudio-gold'
+              }`}
           >
             {tab.label} ({counts[tab.key] || 0})
           </button>
@@ -118,13 +118,14 @@ export function AdminDashboardPage() {
         {isLoading ? (
           <div className="p-8 text-center">Memuat...</div>
         ) : (
-          <table className="w-full min-w-[1400px]">
+          <table className="w-full min-w-[1600px]">
             <thead className="bg-dstudio-dark text-white">
               <tr>
                 <th className="px-4 py-3 text-left text-sm">Tiket ID</th>
                 <th className="px-4 py-3 text-left text-sm">Nama</th>
                 <th className="px-4 py-3 text-left text-sm">No WA</th>
                 <th className="px-4 py-3 text-left text-sm">Layanan</th>
+                <th className="px-4 py-3 text-left text-sm">Link Foto [Client]</th>
                 <th className="px-4 py-3 text-left text-sm">Total Bayar</th>
                 <th className="px-4 py-3 text-left text-sm">Catatan</th>
                 <th className="px-4 py-3 text-left text-sm">Status</th>
@@ -152,28 +153,54 @@ export function AdminDashboardPage() {
                     </a>
                   </td>
                   <td className="px-4 py-3">{order.layanan?.nama_layanan}</td>
+                  <td className="px-4 py-3">
+                    {order.link_foto_mentah ? (
+                      <a
+                        href={order.link_foto_mentah}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                      >
+                        Lihat Foto
+                      </a>
+                    ) : (
+                      '-'
+                    )}
+                  </td>
                   <td className="px-4 py-3">{formatPrice(order.total_bayar)}</td>
                   <td className="px-4 py-3 max-w-xs truncate" title={order.catatan}>
                     {order.catatan || '-'}
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={order.status_pesanan} />
+                    <StatusBadge status={order.status_pesanan} keteranganStatus={order.keterangan_status} />
                   </td>
                   <td className="px-4 py-3">{formatDate(order.created_at)}</td>
                   <td className="px-4 py-3 text-xs text-gray-500">
                     {order.admin_updated_at ? formatDate(order.admin_updated_at) : '-'}
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    {order.adminUpdatedBy?.nama_admin || '-'}
+                    {order.admin?.nama_admin || '-'}
                   </td>
                   <td className="px-4 py-3">
-                    <OrderActions
-                      order={order}
-                      onStatusChange={handleStatusChange}
-                      onResultUpload={handleResultUpload}
-                      onConfirm={confirmMutation.mutate}
-                      isLoading={statusMutation.isLoading || resultMutation.isLoading || confirmMutation.isLoading}
-                    />
+                    <div className="flex flex-col gap-2">
+                      <OrderActions
+                        order={order}
+                        onStatusUpdate={handleStatusUpdate}
+                        isLoading={statusUpdateMutation.isPending}
+                      />
+                      <button
+                        onClick={() => {
+                          if (window.confirm('Yakin ingin menghapus pesanan ini?')) {
+                            deleteMutation.mutate(order.kode_tiket);
+                          }
+                        }}
+                        disabled={deleteMutation.isPending}
+                        className="text-xs text-red-600 hover:text-red-800 text-left mt-2 flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Hapus Pesanan
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -185,102 +212,113 @@ export function AdminDashboardPage() {
   );
 }
 
-function OrderActions({ order, onStatusChange, onResultUpload, onConfirm, isLoading }) {
-  const [selectedStatus, setSelectedStatus] = useState(order.status_pesanan);
-  const [resultLink, setResultLink] = useState('');
-  const [revisiNote, setRevisiNote] = useState('');
+function OrderActions({ order, onStatusUpdate, isLoading }) {
+  // Cek apakah status adalah revisi berdasarkan keterangan_status
+  const isRevisi = order.keterangan_status === 'Revisi';
+  const initialStatus = isRevisi ? 'revisi' : order.status_pesanan;
 
-  const statusOptions = ['terkirim', 'diproses', 'selesai', 'revisi', 'dibatalkan'];
+  const [selectedStatus, setSelectedStatus] = useState(initialStatus); // Default mengikuti status pesanan saat ini
+  const [linkHasil, setLinkHasil] = useState(order.link_foto_hasil || ''); // Nilai awal dari database
+  const [error, setError] = useState('');
+
+  // Update selectedStatus dan linkHasil ketika order data berubah (setelah refetch)
+  useEffect(() => {
+    const newIsRevisi = order.keterangan_status === 'Revisi';
+    const newStatus = newIsRevisi ? 'revisi' : order.status_pesanan;
+    setSelectedStatus(newStatus);
+    setLinkHasil(order.link_foto_hasil || '');
+  }, [order.status_pesanan, order.keterangan_status, order.link_foto_hasil]);
+
+  // Menentukan pilihan dropdown berdasarkan status saat ini
+  const getStatusOptions = () => {
+    const isRevisi = order.keterangan_status === 'Revisi';
+    const currentStatus = isRevisi ? 'revisi' : order.status_pesanan;
+
+    switch (currentStatus) {
+      case 'terkirim':
+        return ['terkirim', 'diproses'];
+      case 'diproses':
+        return ['diproses', 'selesai', 'revisi'];
+      case 'selesai':
+        return ['selesai', 'revisi'];
+      case 'revisi':
+        return ['revisi', 'selesai'];
+      case 'dibatalkan':
+        return ['dibatalkan'];
+      default:
+        return ['terkirim', 'diproses', 'selesai', 'revisi', 'dibatalkan'];
+    }
+  };
+
+  const statusOptions = getStatusOptions();
+
+  const handleUpdate = () => {
+    setError('');
+
+    const requestBody = {
+      status: selectedStatus
+    };
+
+    // Jika pilihan dropdown adalah selesai atau revisi, sertakan link_hasil
+    if (selectedStatus === 'selesai' || selectedStatus === 'revisi') {
+      requestBody.link_hasil = linkHasil;
+    }
+
+    onStatusUpdate(order.kode_tiket, requestBody);
+  };
+
+  // Jika status dibatalkan, tampilkan teks saja
+  if (order.status_pesanan === 'dibatalkan') {
+    return <span className="text-xs text-gray-500">Ditolak</span>;
+  }
+
+  // Penentuan visibilitas input URL:
+  // Muncul jika pilih 'selesai' atau 'revisi'
+  const showUrlInput = (selectedStatus === 'selesai') || (selectedStatus === 'revisi');
 
   return (
     <div className="space-y-2">
-      {/* Status Update */}
+      {/* Error Message */}
+      {error && (
+        <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
+          {error}
+        </div>
+      )}
+
+      {/* Dropdown Status */}
       <div className="flex gap-2">
         <select
           value={selectedStatus}
           onChange={(e) => setSelectedStatus(e.target.value)}
-          className="text-sm border border-gray-300 rounded px-2 py-1"
+          className="text-sm border border-gray-300 rounded px-2 py-1 flex-1"
           disabled={isLoading}
         >
           {statusOptions.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {s.charAt(0).toUpperCase() + s.slice(1)}
             </option>
           ))}
         </select>
         <button
-          onClick={() => onStatusChange(order.kode_tiket, selectedStatus)}
-          disabled={isLoading || selectedStatus === order.status_pesanan}
+          onClick={handleUpdate}
+          disabled={isLoading}
           className="text-xs bg-dstudio-dark text-white px-3 py-1 rounded hover:bg-gray-800 disabled:opacity-50"
         >
           Update
         </button>
       </div>
 
-      {/* Result Upload (only if status = selesai) */}
-      {order.status_pesanan === 'selesai' && (
-        <div className="flex gap-2">
+      {/* Input URL Kondisional */}
+      {showUrlInput && (
+        <div className="space-y-1">
+          <label className="text-xs text-gray-600 font-medium">URL Foto Hasil</label>
           <input
             type="text"
-            value={resultLink}
-            onChange={(e) => setResultLink(e.target.value)}
-            placeholder="Link hasil foto"
-            className="text-sm border border-gray-300 rounded px-2 py-1 flex-1"
+            value={linkHasil}
+            onChange={(e) => setLinkHasil(e.target.value)}
+            placeholder="https://drive.google.com/...."
+            className="text-sm border border-gray-300 rounded px-2 py-1 w-full"
           />
-          <button
-            onClick={() => onResultUpload(order.kode_tiket, resultLink)}
-            disabled={isLoading || !resultLink}
-            className="text-xs bg-dstudio-gold text-dstudio-dark px-3 py-1 rounded hover:bg-yellow-500 disabled:opacity-50"
-          >
-            Upload
-          </button>
-        </div>
-      )}
-
-      {/* Revisi Note (only if status is revisi) */}
-      {order.status_pesanan === 'revisi' && (
-        <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
-          <strong>Catatan Revisi:</strong> {order.catatan_revisi || '-'}
-        </div>
-      )}
-
-      {/* Revisi Button (only if status is selesai) */}
-      {order.status_pesanan === 'selesai' && (
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={revisiNote}
-            onChange={(e) => setRevisiNote(e.target.value)}
-            placeholder="Catatan revisi"
-            className="text-sm border border-gray-300 rounded px-2 py-1 flex-1"
-          />
-          <button
-            onClick={() => {
-              onStatusChange(order.kode_tiket, 'revisi', revisiNote);
-              setRevisiNote('');
-            }}
-            disabled={isLoading || !revisiNote}
-            className="text-xs bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 disabled:opacity-50"
-          >
-            Revisi
-          </button>
-        </div>
-      )}
-
-      {/* Confirm Completed Order */}
-      {order.status_pesanan === 'selesai' && order.link_foto_hasil && order.keterangan_status !== 'completed_confirmed' && (
-        <button
-          onClick={() => onConfirm(order.kode_tiket)}
-          disabled={isLoading}
-          className="w-full text-xs bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 disabled:opacity-50"
-        >
-          Konfirmasi Pesanan Selesai
-        </button>
-      )}
-
-      {order.keterangan_status === 'completed_confirmed' && (
-        <div className="text-xs text-green-600 font-medium text-center">
-          ✓ Sudah Dikonfirmasi
         </div>
       )}
     </div>

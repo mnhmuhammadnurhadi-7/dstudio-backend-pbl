@@ -214,7 +214,7 @@ export function StatusResultPage() {
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <h2 className="text-lg font-bold text-dstudio-dark mb-4">Berikan Rating</h2>
                   {ratingError && <AlertBanner type="error" message={ratingError} />}
-                  <RatingStars onSubmit={handleRate} disabled={rateMutation.isLoading} />
+                  <RatingStars onSubmit={handleRate} disabled={rateMutation.isPending} />
                 </div>
               )}
 

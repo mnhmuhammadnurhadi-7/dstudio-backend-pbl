@@ -18,6 +18,7 @@ import { AdminCompletedPage } from '../pages/admin/AdminCompletedPage';
 import { AdminServicesPage } from '../pages/admin/AdminServicesPage';
 import { AdminServiceFormPage } from '../pages/admin/AdminServiceFormPage';
 import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
+import { AdminEditUserPage } from '../pages/admin/AdminEditUserPage';
 import { AdminCreateFormPage } from '../pages/admin/AdminCreateFormPage';
 import { AdminCmsPage } from '../pages/admin/AdminCmsPage';
 
@@ -103,6 +104,14 @@ export function AppRoutes() {
         element={
           <AdminGuard requireSuperadmin>
             <AdminCreateFormPage />
+          </AdminGuard>
+        }
+      />
+      <Route
+        path="/admin/admins/:id/edit"
+        element={
+          <AdminGuard requireSuperadmin>
+            <AdminEditUserPage />
           </AdminGuard>
         }
       />

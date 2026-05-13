@@ -99,8 +99,8 @@ export function Step2Page() {
                 <ButtonSecondary onClick={handleBack} fullWidth>
                   Kembali
                 </ButtonSecondary>
-                <ButtonPrimary type="submit" fullWidth disabled={mutation.isLoading}>
-                  {mutation.isLoading ? 'Memproses...' : 'Lanjutkan'}
+                <ButtonPrimary type="submit" fullWidth disabled={mutation.isPending}>
+                  {mutation.isPending ? 'Memproses...' : 'Lanjutkan'}
                 </ButtonPrimary>
               </div>
             </form>
