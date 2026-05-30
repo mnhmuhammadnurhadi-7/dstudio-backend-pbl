@@ -4,7 +4,10 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "dev:full": "concurrently \"php artisan serve\" \"npm run dev\"",
+        "build:frontend": "cd ../frontend/dstudio-backend-pbl && npm run build",
+        "build:production": "npm run build:frontend && npm run build"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
