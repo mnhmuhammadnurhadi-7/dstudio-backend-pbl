@@ -66,13 +66,15 @@ export function AdminEditUserPage() {
               <AlertBanner type="error" message="Terjadi kesalahan. Silakan coba lagi." />
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Nama Admin *
                 </label>
                 <input
+                  name="nama_admin"
                   type="text"
+                  autoComplete="off"
                   value={formData.nama_admin}
                   onChange={(e) => setFormData({ ...formData, nama_admin: e.target.value })}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold ${
@@ -88,7 +90,9 @@ export function AdminEditUserPage() {
                   Username *
                 </label>
                 <input
+                  name="username"
                   type="text"
+                  autoComplete="off"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold ${
@@ -104,7 +108,9 @@ export function AdminEditUserPage() {
                   Password Baru
                 </label>
                 <input
+                  name="password"
                   type="password"
+                  autoComplete="new-password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="Kosongkan jika tidak ingin mengubah password"
@@ -121,7 +127,9 @@ export function AdminEditUserPage() {
                     Konfirmasi Password *
                   </label>
                   <input
+                    name="password_confirmation"
                     type="password"
+                    autoComplete="new-password"
                     value={formData.password_confirmation}
                     onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
                     className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold ${
@@ -138,6 +146,7 @@ export function AdminEditUserPage() {
                   Role *
                 </label>
                 <select
+                  name="role"
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold ${

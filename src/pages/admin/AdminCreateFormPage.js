@@ -41,13 +41,15 @@ export function AdminCreateFormPage() {
           <AlertBanner type="error" message="Terjadi kesalahan. Silakan coba lagi." />
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nama *
             </label>
             <input
+              name="name"
               type="text"
+              autoComplete="off"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold ${
@@ -63,7 +65,9 @@ export function AdminCreateFormPage() {
               Username *
             </label>
             <input
+              name="username"
               type="text"
+              autoComplete="off"
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold ${
@@ -81,7 +85,9 @@ export function AdminCreateFormPage() {
               Password *
             </label>
             <input
+              name="password"
               type="password"
+              autoComplete="new-password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold ${
@@ -99,6 +105,7 @@ export function AdminCreateFormPage() {
               Role *
             </label>
             <select
+              name="role"
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-dstudio-gold"
