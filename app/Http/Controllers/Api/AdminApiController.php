@@ -458,7 +458,8 @@ class AdminApiController extends Controller
     {
         $validated = $request->validate([
             'nama_admin' => 'required|string|max:100',
-            'username' => 'required|string|max:50|unique:admins,username,' . $admin->id,
+            // Use primary key id_admin for unique rule to exclude current record
+            'username' => 'required|string|max:50|unique:admins,username,' . $admin->id_admin . ',id_admin',
             'password' => 'nullable|string|min:6',
             'role' => 'required|in:admin,superadmin',
         ]);
