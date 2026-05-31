@@ -7,12 +7,13 @@ use Illuminate\Http\Request;
 
 /**
  * SuperAdmin Middleware
- * Cek apakah user adalah superadmin
+ * Memeriksa apakah admin yang sedang login mempunyai role superadmin.
  */
 class SuperAdmin
 {
     public function handle(Request $request, Closure $next)
     {
+        // Jika role admin bukan superadmin, tolak akses
         if (session('admin_role') !== 'superadmin') {
             return response()->json([
                 'success' => false,
@@ -20,6 +21,7 @@ class SuperAdmin
             ], 403);
         }
 
+        // Lanjutkan request jika role valid
         return $next($request);
     }
 }

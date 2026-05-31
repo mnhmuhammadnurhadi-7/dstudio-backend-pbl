@@ -8,65 +8,64 @@ use App\Models\Pesanan;
 
 /**
  * Model Admin
- * Merepresentasikan tabel admin di database
- * Menyimpan data akun admin dan super admin
+ * Merepresentasikan tabel admins di database.
+ * Menyimpan akun admin dan superadmin.
+ *
+ * @property int $id_admin
  */
 class Admin extends Model
 {
     use HasFactory;
 
     /**
-     * Nama tabel (sesuai ERD)
+     * Nama tabel di database.
      */
     protected $table = 'admins';
 
     /**
-     * Primary key (sesuai ERD)
+     * Primary key khusus tabel admins.
      */
     protected $primaryKey = 'id_admin';
 
     /**
-     * Auto increment
+     * Primary key otomatis increment.
      */
     public $incrementing = true;
 
     /**
-     * Tipe primary key
+     * Tipe data primary key.
      */
     protected $keyType = 'integer';
 
     /**
-     * Timestamps (hanya created_at yang ada)
+     * Timestamps: hanya created_at yang tersedia.
      */
     const UPDATED_AT = null;
 
     /**
-     * $fillable: Kolom yang boleh diisi massal
+     * Kolom yang boleh diisi massal melalui create/update.
      */
     protected $fillable = [
-        'username',   // Username untuk login
-        'password',   // Password (akan di-hash)
+        'username',   // Username admin
+        'password',   // Password ter-hash otomatis
         'nama_admin', // Nama lengkap admin
-        'role',       // Role: 'admin' atau 'superadmin'
+        'role',       // Role: admin atau superadmin
     ];
 
     /**
-     * $hidden: Kolom yang disembunyikan saat model di-convert ke JSON/array
-     * Password disembunyikan untuk keamanan
+     * Kolom yang disembunyikan saat dikonversi ke JSON.
      */
     protected $hidden = ['password'];
 
     /**
-     * $casts: Casting tipe data
-     * password di-cast ke 'hashed' → otomatis hash password saat disimpan
+     * Casting tipe data untuk atribut tertentu.
      */
     protected $casts = [
-        'password' => 'hashed', // Laravel akan otomatis hash password
+        'password' => 'hashed',
     ];
 
     /**
-     * Relasi: Admin memiliki banyak pesanan
-     * Satu admin bisa mengelola banyak pesanan
+     * Relasi: satu admin dapat menangani banyak pesanan.
      */
     public function pesanan()
     {

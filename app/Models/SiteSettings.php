@@ -7,56 +7,55 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Model SiteSettings
- * Merepresentasikan tabel site_settings di database
- * Menyimpan pengaturan website untuk CMS
+ * Menyimpan pengaturan situs untuk CMS.
  */
 class SiteSettings extends Model
 {
     use HasFactory;
 
     /**
-     * Nama tabel (sesuai ERD)
+     * Nama tabel site_settings.
      */
     protected $table = 'site_settings';
 
     /**
-     * Primary key (default id)
+     * Primary key standar id.
      */
     protected $primaryKey = 'id';
 
     /**
-     * Auto increment
+     * Primary key auto increment.
      */
     public $incrementing = true;
 
     /**
-     * Tipe primary key
+     * Tipe data primary key.
      */
     protected $keyType = 'integer';
 
     /**
-     * Timestamps (hanya updated_at yang ada)
+     * Hanya updated_at yang tersedia, created_at tidak diaktifkan.
      */
     const CREATED_AT = null;
 
     /**
-     * $fillable: Kolom yang boleh diisi massal
+     * Atribut yang boleh diisi massal.
      */
     protected $fillable = [
-        'setting_key',   // Key unik untuk setting
-        'setting_value', // Value setting
-        'keterangan',    // Keterangan opsional
+        'setting_key',
+        'setting_value',
+        'keterangan',
     ];
 
     /**
-     * $casts: Casting tipe data
+     * Casting tipe data untuk atribut.
      */
     protected $casts = [
         'updated_at' => 'datetime',
     ];
 
     /**
-     * Scope untuk cari setting berdasarkan key
+     * Scope untuk mencari setting berdasarkan key.
      */
     public function scopeKey($query, $key)
     {
@@ -64,7 +63,7 @@ class SiteSettings extends Model
     }
 
     /**
-     * Static method untuk ambil setting value by key
+     * Ambil nilai setting berdasarkan key.
      */
     public static function getValue($key, $default = null)
     {
@@ -73,7 +72,7 @@ class SiteSettings extends Model
     }
 
     /**
-     * Static method untuk update/create setting
+     * Buat atau update setting berdasarkan key.
      */
     public static function setValue($key, $value, $keterangan = null)
     {

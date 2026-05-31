@@ -9,14 +9,13 @@ use Illuminate\Support\Facades\Hash;
 
 /**
  * AdminAuthApiController
- * Controller untuk autentikasi admin via API (JSON)
- * Digunakan oleh React frontend untuk login/logout
+ * Controller untuk autentikasi admin via API (JSON).
+ * Mendukung login, logout, dan pengecekan auth.
  */
 class AdminAuthApiController extends Controller
 {
     /**
-     * Proses login admin via API
-     * Return JSON untuk React frontend
+     * Proses login admin via API.
      */
     public function login(Request $request)
     {
@@ -25,8 +24,10 @@ class AdminAuthApiController extends Controller
             'password' => 'required|string',
         ]);
 
+        // Ambil admin berdasarkan username
         $admin = Admin::where('username', $validated['username'])->first();
 
+        // Cek password dan login
         if ($admin && Hash::check($validated['password'], $admin->password)) {
             session([
                 'admin_id' => $admin->id_admin,
@@ -51,10 +52,11 @@ class AdminAuthApiController extends Controller
     }
 
     /**
-     * Logout admin via API
+     * Logout admin via API.
      */
     public function logout()
     {
+        // Hapus data login dari session
         session()->forget(['admin_id', 'admin_role', 'admin_name']);
         
         return response()->json([
@@ -64,7 +66,7 @@ class AdminAuthApiController extends Controller
     }
 
     /**
-     * Get current authenticated admin info
+     * Dapatkan informasi admin jika sudah login.
      */
     public function me()
     {

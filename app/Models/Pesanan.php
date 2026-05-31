@@ -4,65 +4,68 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 /**
  * Model Pesanan
- * Merepresentasikan tabel pesanan di database
- * Menyimpan data pesanan dari customer
+ * Merepresentasikan tabel pesanan dari customer.
+ *
+ * @property string $kode_tiket
+ * @property int|null $id_admin
+ * @property string $status_pesanan
+ * @property string|null $link_foto_hasil
  */
 class Pesanan extends Model
 {
     use HasFactory;
 
     /**
-     * Nama tabel (sesuai ERD)
+     * Nama tabel pesanan.
      */
     protected $table = 'pesanan';
 
     /**
-     * Primary key (sesuai ERD)
+     * Primary key adalah kode tiket.
      */
     protected $primaryKey = 'kode_tiket';
 
     /**
-     * Tipe primary key (string)
+     * Primary key bertipe string.
      */
     protected $keyType = 'string';
 
     /**
-     * Auto increment (false karena kode_tiket bukan auto increment)
+     * Non increment karena kode tiket dibangun manual.
      */
     public $incrementing = false;
 
     /**
-     * Timestamps (hanya created_at yang ada, selesai_at manual)
+     * Timestamps: hanya created_at otomatis.
      */
     const UPDATED_AT = null;
 
     /**
-     * $fillable: Kolom yang boleh diisi massal
+     * Atribut yang boleh diisi massal.
      */
     protected $fillable = [
-        'kode_tiket',       // Kode unik tiket (DST-XXX-XXX-XXX)
-        'id_layanan',       // Foreign key ke layanan
-        'id_admin',         // Foreign key ke admin (nullable)
-        'admin_updated_by', // Foreign key admin yang update terakhir
-        'nama_pelanggan',   // Nama customer
-        'no_wa',            // Nomor WhatsApp
-        'link_foto_mentah', // Link Google Drive foto asli
-        'catatan',          // Catatan untuk editor
-        'catatan_revisi',   // Catatan untuk revisi
-        'total_bayar',      // Total harga
-        'status_pesanan',   // Status pesanan
-        'keterangan_status', // Keterangan: fix atau revisi
-        'link_foto_hasil',  // Link Google Drive hasil edit
-        'selesai_at',       // Timestamp selesai
-        'admin_updated_at', // Timestamp update oleh admin
+        'kode_tiket',
+        'id_layanan',
+        'id_admin',
+        'admin_updated_by',
+        'nama_pelanggan',
+        'no_wa',
+        'link_foto_mentah',
+        'catatan',
+        'catatan_revisi',
+        'total_bayar',
+        'status_pesanan',
+        'keterangan_status',
+        'link_foto_hasil',
+        'selesai_at',
+        'admin_updated_at',
     ];
 
     /**
-     * $casts: Casting tipe data
+     * Casting tipe data atribut.
      */
     protected $casts = [
         'total_bayar' => 'integer',
@@ -72,13 +75,12 @@ class Pesanan extends Model
     ];
 
     /**
-     * Boot method untuk auto-generate kode_tiket
+     * Boot method untuk mengisi kode tiket saat create.
      */
     protected static function boot()
     {
         parent::boot();
 
-        // Generate kode_tiket saat creating
         static::creating(function ($pesanan) {
             if (empty($pesanan->kode_tiket)) {
                 $pesanan->kode_tiket = $pesanan->generateKodeTiket();
@@ -87,28 +89,22 @@ class Pesanan extends Model
     }
 
     /**
-     * Generate kode tiket unik
-     * Format: DST-{3 digit nomor urut}-{3 digit akhir nomor telepon}-{3 digit timestamp}
-     * Contoh: DST-001-123-456
+     * Generate kode tiket unik.
      */
     public function generateKodeTiket()
     {
-        // Dapatkan nomor urut pesanan (hitung total pesanan + 1)
         $orderCount = self::count() + 1;
         $orderNumber = str_pad($orderCount % 1000, 3, '0', STR_PAD_LEFT);
-        
-        // Ambil 3 digit terakhir dari nomor telepon (hapus karakter non-angka)
+
         $phoneDigits = preg_replace('/\D/', '', $this->no_wa);
         $phoneLast3 = substr($phoneDigits, -3);
         $phoneLast3 = str_pad($phoneLast3, 3, '0', STR_PAD_LEFT);
-        
-        // 3 digit dari timestamp (milisecond terakhir)
+
         $timestamp = microtime(true);
         $timestampPart = substr(str_replace('.', '', $timestamp), -3);
-        
+
         $kodeTiket = "DST-{$orderNumber}-{$phoneLast3}-{$timestampPart}";
-        
-        // Pastikan unik
+
         while (self::where('kode_tiket', $kodeTiket)->exists()) {
             $timestamp = microtime(true);
             $timestampPart = substr(str_replace('.', '', $timestamp), -3);
@@ -119,8 +115,7 @@ class Pesanan extends Model
     }
 
     /**
-     * Relasi: Pesanan belongs to Layanan
-     * Satu pesanan terkait dengan satu layanan
+     * Relasi ke model Layanan.
      */
     public function layanan()
     {
@@ -128,8 +123,7 @@ class Pesanan extends Model
     }
 
     /**
-     * Relasi: Pesanan belongs to Admin
-     * Satu pesanan bisa ditangani oleh satu admin (nullable)
+     * Relasi ke model Admin yang menangani pesanan.
      */
     public function admin()
     {
@@ -137,8 +131,7 @@ class Pesanan extends Model
     }
 
     /**
-     * Relasi: Pesanan belongs to Admin (admin yang terakhir update)
-     * Track siapa admin yang terakhir mengupdate status pesanan
+     * Relasi ke admin yang terakhir mengupdate pesanan.
      */
     public function adminUpdatedBy()
     {
@@ -146,8 +139,7 @@ class Pesanan extends Model
     }
 
     /**
-     * Relasi: Pesanan has one Rating
-     * Satu pesanan bisa punya satu rating
+     * Relasi ke rating pesanan.
      */
     public function rating()
     {
@@ -155,7 +147,7 @@ class Pesanan extends Model
     }
 
     /**
-     * Scope untuk filter status
+     * Scope untuk filter status pesanan.
      */
     public function scopeStatus($query, $status)
     {
@@ -163,7 +155,7 @@ class Pesanan extends Model
     }
 
     /**
-     * Scope untuk pesanan yang belum selesai
+     * Scope untuk pesanan yang belum selesai atau dibatalkan.
      */
     public function scopeBelumSelesai($query)
     {

@@ -12,8 +12,9 @@ use Illuminate\Http\Request;
 
 /**
  * AdminApiController
- * Controller untuk admin dashboard via API (JSON)
- * Semua method return JSON untuk React frontend
+ * Controller untuk admin dashboard via API (JSON).
+ * Menangani order, layanan, admins, dan CMS untuk panel admin.
+ * Semua method mengembalikan response JSON.
  */
 class AdminApiController extends Controller
 {

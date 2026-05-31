@@ -9,14 +9,24 @@ use App\Models\SiteSettings;
 use App\Models\Rating;
 use Illuminate\Http\Request;
 
+/**
+ * OrderApiController
+ * Menangani proses pemesanan customer dan rating order.
+ */
 class OrderApiController extends Controller
 {
+    /**
+     * Ambil daftar layanan untuk step 1 pemesanan.
+     */
     public function step1()
     {
         $services = Layanan::orderBy('id_layanan', 'desc')->get();
         return response()->json(['services' => $services]);
     }
 
+    /**
+     * Simpan data pengguna dari step 1 ke session.
+     */
     public function saveStep1(Request $request)
     {
         $validated = $request->validate([
@@ -36,6 +46,9 @@ class OrderApiController extends Controller
         return response()->json(['success' => true, 'message' => 'Step 1 saved']);
     }
 
+    /**
+     * Simpan link foto mentah dari step 2 ke session.
+     */
     public function saveStep2(Request $request)
     {
         $validated = $request->validate([
@@ -47,6 +60,9 @@ class OrderApiController extends Controller
         return response()->json(['success' => true, 'message' => 'Step 2 saved']);
     }
 
+    /**
+     * Ambil data service dan QRIS untuk step 3.
+     */
     public function step3(Request $request)
     {
         $serviceId = $request->query('service_id') ?? session('order.service_id');
@@ -59,9 +75,11 @@ class OrderApiController extends Controller
         ]);
     }
 
+    /**
+     * Submit pemesanan akhir dan simpan ke tabel pesanan.
+     */
     public function saveStep3(Request $request)
     {
-        // Validasi semua data yang diperlukan
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'phone' => 'required|string|max:20',
@@ -88,12 +106,18 @@ class OrderApiController extends Controller
         ]);
     }
 
+    /**
+     * Tampilkan detail pesanan berdasarkan kode tiket.
+     */
     public function show($ticketId)
     {
         $pesanan = Pesanan::with(['layanan', 'rating'])->where('kode_tiket', $ticketId)->firstOrFail();
         return response()->json($pesanan);
     }
 
+    /**
+     * Cek status pesanan berdasarkan ticket_id yang dimasukkan customer.
+     */
     public function checkStatus(Request $request)
     {
         $validated = $request->validate([
@@ -109,6 +133,9 @@ class OrderApiController extends Controller
         return response()->json($pesanan);
     }
 
+    /**
+     * Submit rating customer untuk pesanan selesai.
+     */
     public function submitRating(Request $request)
     {
         $validated = $request->validate([
@@ -123,7 +150,6 @@ class OrderApiController extends Controller
             return response()->json(['error' => 'Pesanan belum selesai'], 400);
         }
 
-        // Cek apakah rating sudah ada
         $existingRating = Rating::where('kode_tiket', $validated['kode_tiket'])->first();
         if ($existingRating) {
             return response()->json(['error' => 'Rating sudah diberikan'], 400);

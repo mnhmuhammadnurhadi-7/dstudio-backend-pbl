@@ -7,12 +7,14 @@ use Illuminate\Http\Request;
 
 /**
  * AdminAuth Middleware
- * Cek apakah admin sudah login via session
+ * Memeriksa session admin sebelum melanjutkan request.
+ * Jika admin belum login, kembalikan HTTP 401 JSON.
  */
 class AdminAuth
 {
     public function handle(Request $request, Closure $next)
     {
+        // Cek session admin_id untuk memastikan admin sudah login
         if (!session('admin_id')) {
             return response()->json([
                 'success' => false,
@@ -20,6 +22,7 @@ class AdminAuth
             ], 401);
         }
 
+        // Jika sudah login, lanjutkan request ke controller berikutnya
         return $next($request);
     }
 }

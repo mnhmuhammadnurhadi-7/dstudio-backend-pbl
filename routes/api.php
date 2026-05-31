@@ -11,11 +11,13 @@ use App\Http\Controllers\Api\AdminApiController;
 // PUBLIC API ROUTES
 // ═══════════════════════════════════════════════════════════════
 
-// Home & Services
+// Route untuk halaman depan yang menampilkan teks hero dan about
 Route::get('/home', [HomeApiController::class, 'index']);
+// Route untuk mengambil daftar layanan aktif yang tersedia
 Route::get('/services', [ServiceApiController::class, 'index']);
 
 // Order API Routes
+// Route ini digunakan untuk proses pemesanan multi-step dari frontend
 Route::get('/order/step-1', [OrderApiController::class, 'step1']);
 Route::post('/order/step-1', [OrderApiController::class, 'saveStep1']);
 Route::post('/order/step-2', [OrderApiController::class, 'saveStep2']);
@@ -29,17 +31,17 @@ Route::post('/order/rate', [OrderApiController::class, 'submitRating']);
 // ADMIN API ROUTES
 // ═══════════════════════════════════════════════════════════════
 
-// Admin Auth (Public)
+// Route untuk login admin dengan username dan password
 Route::post('/admin/login', [AdminAuthApiController::class, 'login']);
+// Route untuk memeriksa status autentikasi admin
 Route::get('/admin/me', [AdminAuthApiController::class, 'me']);
 
-// Protected Admin Routes
+// Semua route admin dengan prefix /admin membutuhkan session admin
 Route::middleware(['admin.auth'])->prefix('admin')->group(function () {
-    
-    // Auth
+    // Logout admin dan hapus session
     Route::post('/logout', [AdminAuthApiController::class, 'logout']);
     
-    // Dashboard - Orders
+    // Order dashboard untuk admin
     Route::get('/orders', [AdminApiController::class, 'getOrders']);
     Route::get('/orders/completed', [AdminApiController::class, 'getCompletedOrders']);
     Route::patch('/orders/{order}/status', [AdminApiController::class, 'updateStatus']);
@@ -49,24 +51,23 @@ Route::middleware(['admin.auth'])->prefix('admin')->group(function () {
     Route::patch('/orders/{order}/confirm-completed', [AdminApiController::class, 'confirmCompletedOrder']);
     Route::delete('/orders/{order}', [AdminApiController::class, 'deleteOrder']);
     
-    // Superadmin Only Routes
+    // Hanya superadmin boleh mengelola service, admin, dan CMS
     Route::middleware(['superadmin'])->group(function () {
-        
-        // Services Management
+        // Service management
         Route::get('/services', [AdminApiController::class, 'getServices']);
         Route::get('/services/{service}', [AdminApiController::class, 'getService']);
         Route::post('/services', [AdminApiController::class, 'createService']);
         Route::put('/services/{service}', [AdminApiController::class, 'updateService']);
         Route::delete('/services/{service}', [AdminApiController::class, 'deleteService']);
         
-        // Admins Management
+        // Admin management
         Route::get('/admins', [AdminApiController::class, 'getAdmins']);
         Route::get('/admins/{admin}', [AdminApiController::class, 'getAdmin']);
         Route::post('/admins', [AdminApiController::class, 'createAdmin']);
         Route::put('/admins/{admin}', [AdminApiController::class, 'updateAdmin']);
         Route::delete('/admins/{admin}', [AdminApiController::class, 'deleteAdmin']);
         
-        // CMS
+        // CMS management
         Route::get('/cms', [AdminApiController::class, 'getCms']);
         Route::post('/cms', [AdminApiController::class, 'updateCms']);
     });

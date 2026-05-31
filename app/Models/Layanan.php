@@ -7,50 +7,49 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Model Layanan
- * Merepresentasikan tabel layanan di database
- * Menyimpan data layanan editing foto yang tersedia
+ * Merepresentasikan layanan foto yang tersedia.
  */
 class Layanan extends Model
 {
     use HasFactory;
 
     /**
-     * Nama tabel (sesuai ERD)
+     * Nama tabel layanan.
      */
     protected $table = 'layanan';
 
     /**
-     * Primary key (sesuai ERD)
+     * Primary key khusus tabel layanan.
      */
     protected $primaryKey = 'id_layanan';
 
     /**
-     * Auto increment
+     * Primary key auto increment.
      */
     public $incrementing = true;
 
     /**
-     * Tipe primary key
+     * Tipe data primary key.
      */
     protected $keyType = 'integer';
 
     /**
-     * Timestamps (tidak ada di tabel layanan)
+     * Nonaktifkan timestamp otomatis.
      */
     public $timestamps = false;
 
     /**
-     * $fillable: Kolom yang boleh diisi massal
+     * Atribut yang boleh diisi massal.
      */
     protected $fillable = [
-        'nama_layanan', // Nama layanan
-        'deskripsi',    // Deskripsi opsional
-        'harga',        // Harga dalam rupiah
-        'is_active',    // Status aktif (1=aktif, 0=nonaktif)
+        'nama_layanan',
+        'deskripsi',
+        'harga',
+        'is_active',
     ];
 
     /**
-     * $casts: Casting tipe data
+     * Casting tipe data untuk atribut layanan.
      */
     protected $casts = [
         'is_active' => 'boolean',
@@ -58,8 +57,7 @@ class Layanan extends Model
     ];
 
     /**
-     * Relasi: Layanan memiliki banyak pesanan
-     * Satu layanan bisa memiliki banyak pesanan
+     * Relasi: satu layanan dapat digunakan oleh banyak pesanan.
      */
     public function pesanan()
     {

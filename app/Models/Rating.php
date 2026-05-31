@@ -7,49 +7,48 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Model Rating
- * Merepresentasikan tabel rating di database
- * Menyimpan rating dan ulasan customer untuk pesanan
+ * Merepresentasikan rating dan ulasan customer.
  */
 class Rating extends Model
 {
     use HasFactory;
 
     /**
-     * Nama tabel (sesuai ERD)
+     * Nama tabel rating.
      */
     protected $table = 'rating';
 
     /**
-     * Primary key (sesuai ERD)
+     * Primary key rating.
      */
     protected $primaryKey = 'id_rating';
 
     /**
-     * Auto increment
+     * Auto increment primary key.
      */
     public $incrementing = true;
 
     /**
-     * Tipe primary key
+     * Primary key bertipe integer.
      */
     protected $keyType = 'integer';
 
     /**
-     * Timestamps (hanya created_at yang ada)
+     * Timestamps: hanya created_at yang ada.
      */
     const UPDATED_AT = null;
 
     /**
-     * $fillable: Kolom yang boleh diisi massal
+     * Atribut yang boleh diisi massal.
      */
     protected $fillable = [
-        'kode_tiket',     // Foreign key ke pesanan
-        'nilai_rating',   // Nilai rating 1-5
-        'ulasan',         // Ulasan customer
+        'kode_tiket',
+        'nilai_rating',
+        'ulasan',
     ];
 
     /**
-     * $casts: Casting tipe data
+     * Casting tipe data.
      */
     protected $casts = [
         'nilai_rating' => 'integer',
@@ -57,8 +56,7 @@ class Rating extends Model
     ];
 
     /**
-     * Relasi: Rating belongs to Pesanan
-     * Satu rating terkait dengan satu pesanan
+     * Relasi: rating milik satu pesanan.
      */
     public function pesanan()
     {
@@ -66,7 +64,7 @@ class Rating extends Model
     }
 
     /**
-     * Scope untuk rating dengan nilai tertentu
+     * Scope untuk filter rating berdasarkan bintang.
      */
     public function scopeBintang($query, $bintang)
     {
@@ -74,7 +72,7 @@ class Rating extends Model
     }
 
     /**
-     * Scope untuk rating dengan ulasan
+     * Scope untuk rating yang memiliki ulasan.
      */
     public function scopeDenganUlasan($query)
     {
