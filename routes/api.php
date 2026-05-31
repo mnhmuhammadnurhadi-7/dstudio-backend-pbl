@@ -33,6 +33,8 @@ Route::post('/order/rate', [OrderApiController::class, 'submitRating']);
 
 // Route untuk login admin dengan username dan password
 Route::post('/admin/login', [AdminAuthApiController::class, 'login']);
+// Route untuk registrasi admin
+Route::post('/admin/register', [AdminAuthApiController::class, 'register']);
 // Route untuk memeriksa status autentikasi admin
 Route::get('/admin/me', [AdminAuthApiController::class, 'me']);
 

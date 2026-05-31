@@ -52,6 +52,36 @@ class AdminAuthApiController extends Controller
     }
 
     /**
+     * Proses registrasi admin via API.
+     */
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'username' => 'required|string|unique:admin,username',
+            'password' => 'required|string|min:6',
+            'nama_admin' => 'required|string|max:100',
+            'role' => 'required|in:ADMIN,SUPER_ADMIN',
+        ]);
+
+        $admin = Admin::create([
+            'username' => $validated['username'],
+            'password' => Hash::make($validated['password']),
+            'nama_admin' => $validated['nama_admin'],
+            'role' => $validated['role'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Registrasi admin berhasil.',
+            'admin' => [
+                'id' => $admin->id_admin,
+                'name' => $admin->nama_admin,
+                'role' => $admin->role,
+            ],
+        ], 201);
+    }
+
+    /**
      * Logout admin via API.
      */
     public function logout()

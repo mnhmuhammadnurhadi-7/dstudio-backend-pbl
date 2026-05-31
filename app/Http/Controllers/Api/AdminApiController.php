@@ -104,6 +104,7 @@ class AdminApiController extends Controller
         $validated = $request->validate([
             'status' => 'required|in:terkirim,diproses,selesai,revisi,dibatalkan',
             'catatan_revisi' => 'nullable|string',
+            'finished_photo_link' => 'nullable|url',
         ]);
 
         $updateData = [
@@ -120,6 +121,10 @@ class AdminApiController extends Controller
         if ($validated['status'] === 'selesai') {
             $updateData['keterangan_status'] = 'fix';
             $updateData['selesai_at'] = now();
+            // Update link foto hasil jika disediakan
+            if (isset($validated['finished_photo_link'])) {
+                $updateData['link_foto_hasil'] = $validated['finished_photo_link'];
+            }
         } elseif ($validated['status'] === 'revisi') {
             // Status revisi tetap disimpan sebagai 'selesai' dengan keterangan_status 'Revisi'
             // agar histori tetap terjaga di tabel selesai

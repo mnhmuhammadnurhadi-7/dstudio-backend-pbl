@@ -90,13 +90,17 @@ class OrderApiController extends Controller
 
         $service = Layanan::find($validated['service_id']);
 
+        if (!$service) {
+            return response()->json(['error' => 'Layanan tidak ditemukan'], 404);
+        }
+
         $pesanan = Pesanan::create([
             'id_layanan' => $validated['service_id'],
             'nama_pelanggan' => $validated['name'],
             'no_wa' => $validated['phone'],
             'link_foto_mentah' => $validated['photo_link'],
             'catatan' => $validated['notes'],
-            'total_bayar' => $service->harga,
+            'total_bayar' => $service->harga ?? 0,
             'status_pesanan' => 'terkirim',
         ]);
 
