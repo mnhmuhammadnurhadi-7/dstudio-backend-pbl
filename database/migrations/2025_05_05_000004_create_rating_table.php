@@ -18,7 +18,7 @@ return new class extends Migration
     {
         Schema::create('rating', function (Blueprint $table) {
             // Primary key auto increment
-            $table->integer('id_rating')->autoIncrement()->primary();
+            $table->integer('id_rating')->autoIncrement();
 
             // Foreign key ke pesanan (UNIQUE - satu pesanan hanya bisa satu rating)
             $table->string('kode_tiket', 20)->unique();

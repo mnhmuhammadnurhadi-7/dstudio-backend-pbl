@@ -18,7 +18,7 @@ return new class extends Migration
     {
         Schema::create('site_settings', function (Blueprint $table) {
             // Primary key auto increment
-            $table->integer('id')->autoIncrement()->primary();
+            $table->integer('id')->autoIncrement();
             
             // Data setting
             $table->string('setting_key', 100)->unique(); // Key unik
@@ -26,7 +26,11 @@ return new class extends Migration
             $table->string('keterangan', 255)->nullable(); // Keterangan opsional
             
             // Timestamp dengan auto update
-            $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
+            $table->timestamp('updated_at')->default(
+                config('database.default') === 'sqlite'
+                    ? DB::raw('CURRENT_TIMESTAMP')
+                    : DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')
+            );
         });
     }
 

@@ -18,7 +18,7 @@ return new class extends Migration
     {
         Schema::create('layanan', function (Blueprint $table) {
             // Primary key dengan custom name
-            $table->integer('id_layanan')->autoIncrement()->primary();
+            $table->integer('id_layanan')->autoIncrement();
             
             // Data layanan
             $table->string('nama_layanan', 100);         // Nama layanan

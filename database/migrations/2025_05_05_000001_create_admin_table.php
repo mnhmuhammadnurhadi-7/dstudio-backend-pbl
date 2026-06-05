@@ -18,7 +18,7 @@ return new class extends Migration
     {
         Schema::create('admins', function (Blueprint $table) {
             // Primary key dengan custom name
-            $table->integer('id_admin')->autoIncrement()->primary();
+            $table->integer('id_admin')->autoIncrement();
             
             // Data akun
             $table->string('username', 50)->unique();      // Username login
@@ -38,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('admin');
+        Schema::dropIfExists('admins');
     }
 };

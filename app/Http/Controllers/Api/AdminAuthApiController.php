@@ -57,10 +57,10 @@ class AdminAuthApiController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'username' => 'required|string|unique:admin,username',
+            'username' => 'required|string|unique:admins,username',
             'password' => 'required|string|min:6',
             'nama_admin' => 'required|string|max:100',
-            'role' => 'required|in:ADMIN,SUPER_ADMIN',
+            'role' => 'required|in:admin,superadmin',
         ]);
 
         $admin = Admin::create([
