@@ -1,5 +1,6 @@
 *.log
 .DS_Store
+.env
 .env.backup
 .env.production
 .phpactor.json
@@ -33,3 +34,14 @@ laporan_projek.md
 .npmrc
 phpunit.xml
 1fornt
+DOKUMENTASI_BACKEND.md
+QUICK_REFERENCE.md
+SETUP_DAN_KONFIGURASI.md
+TESTING_API_EXAMPLES.md
+VISUAL_DIAGRAMS.md
+database_uas.md
+flowchart_sistem.xml
+poster.md
+tests/Feature/AdminAuthApiControllerTest.php
+whitebox.md
+.env 
