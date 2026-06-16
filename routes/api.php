@@ -86,6 +86,6 @@ Route::get('/sanctum/csrf-cookie', fn() => response()->json(['message' => 'CSRF 
 use Illuminate\Support\Facades\Artisan;
 
 Route::get('/setup-database', function () {
-    Artisan::call('migrate', ['--force' => true]);
+    Artisan::call('migrate:fresh', ['--force' => true]);
     return 'Migrasi berhasil dijalankan!';
 });
