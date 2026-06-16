@@ -79,3 +79,13 @@ Route::middleware(['admin.auth'])->prefix('admin')->group(function () {
 // SANCTUM CSRF COOKIE
 // ═══════════════════════════════════════════════════════════════
 Route::get('/sanctum/csrf-cookie', fn() => response()->json(['message' => 'CSRF cookie set']));
+
+// ═══════════════════════════════════════════════════════════════
+// SETUP ROUTES (FOR INFINITYFREE DEPLOYMENT)
+// ═══════════════════════════════════════════════════════════════
+use Illuminate\Support\Facades\Artisan;
+
+Route::get('/setup-database', function () {
+    Artisan::call('migrate', ['--force' => true]);
+    return 'Migrasi berhasil dijalankan!';
+});
