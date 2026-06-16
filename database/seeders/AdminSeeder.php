@@ -20,28 +20,28 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        // Buat akun Super Admin (gunakan firstOrCreate untuk menghindari duplicate)
-        Admin::firstOrCreate(
+        // Buat akun Super Admin (gunakan updateOrCreate untuk memastikan password di-update)
+        Admin::updateOrCreate(
             ['username' => 'superadmin'],
             [
-                'password' => Hash::make('superadmin123'),
+                'password' => Hash::make('superadmin183789'),
                 'nama_admin' => 'Super Admin',
                 'role' => 'superadmin',
             ]
         );
 
-        // Buat akun Admin biasa (gunakan firstOrCreate untuk menghindari duplicate)
-        Admin::firstOrCreate(
+        // Buat akun Admin biasa (gunakan updateOrCreate untuk memastikan password di-update)
+        Admin::updateOrCreate(
             ['username' => 'admin'],
             [
-                'password' => Hash::make('admin123'),
+                'password' => Hash::make('admin@123887'),
                 'nama_admin' => 'Admin User',
                 'role' => 'admin',
             ]
         );
 
         $this->command->info('✓ AdminSeeder: 2 akun admin berhasil dibuat/diperbarui');
-        $this->command->info('  - Super Admin: superadmin/superadmin123');
-        $this->command->info('  - Admin: admin/admin123');
+        $this->command->info('  - Super Admin: superadmin/superadmin183789');
+        $this->command->info('  - Admin: admin/admin@123887');
     }
 }
