@@ -22,6 +22,7 @@ fi
 
 # Ensure basic setup
 php artisan migrate --force || true
+php artisan db:seed --force || true
 php artisan storage:link || true
 
 # Start PHP built-in server (Render sets $PORT)
